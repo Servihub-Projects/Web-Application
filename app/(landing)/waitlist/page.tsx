@@ -8,10 +8,11 @@ export default function WaitlistPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setStatus("loading");
     setMessage(null);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(formElement);
     const payload = {
       name: String(formData.get("name") || "").trim(),
       email: String(formData.get("email") || "").trim(),
@@ -39,7 +40,7 @@ export default function WaitlistPage() {
 
       setStatus("success");
       setMessage("You're on the list! We'll be in touch soon.");
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (error: any) {
       setStatus("error");
       setMessage(error.message || "Something went wrong. Please try again.");
