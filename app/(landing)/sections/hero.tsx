@@ -14,7 +14,7 @@ export default function HeroSection() {
         </div>
         <div className="flex-1 flex justify-center items-center">
           <div className="w-150 h-150 rounded-lg bg-white p-1">
-            <Image src="/hero-image.png" alt="Hero Image" width={500} height={500} />
+            {/*<Image src="/hero-image.png" alt="Hero Image" width={500} height={500} />*/}
           </div>
         </div>
       </div>
