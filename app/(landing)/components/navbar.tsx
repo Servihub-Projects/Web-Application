@@ -6,31 +6,38 @@ export default function NavigationBar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navRoutes: { routeName: string; routeLink: string }[] = [
-    { routeName: "Features", routeLink: "#features" },
-    { routeName: "Services", routeLink: "#services" },
-    { routeName: "How it works", routeLink: "#how-it-works" },
-    { routeName: "Testimonials", routeLink: "#testimonials" },
-    { routeName: "FAQ", routeLink: "#faq" },
+    { routeName: "Home", routeLink: "/" },
+    { routeName: "Features", routeLink: "/#features" },
+    { routeName: "Services", routeLink: "/#services" },
+    { routeName: "How it works", routeLink: "/#how-it-works" },
+    { routeName: "Testimonials", routeLink: "/#testimonials" },
+    { routeName: "FAQ", routeLink: "/#faq" },
   ];
 
   return (
     <nav className="border-b-2 border-b-gray-100 sticky top-0 bg-white">
       <div className="mx-auto container flex justify-between items-center px-4 py-6">
         <Link href="/">Logo</Link>
-        <ul className="flex justify-between list-none">
+        <ul className="md:flex justify-between list-none hidden">
           {navRoutes.map((route, index) => (
             <li key={index}>
               <Link className="transistion-colors duration-200 hover:text-orange-600 px-4 py-2" href={route.routeLink}>{route.routeName}</Link>
             </li>
           ))}
         </ul>
-        <div className="flex items-center gap-8 text-sm">
-          <Link href={"/signin"}>Sign in</Link>
+        <div className="md:flex hidden items-center gap-8 text-sm">
+          {/*<Link href={"/signin"}>Sign in</Link>
           <Link
             href="/get-started"
             className="px-4 py-2 rounded-lg inline-block text-white bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-[length:200%_100%] bg-left hover:bg-right transition-all duration-500"
           >
             Get Started
+          </Link>*/}
+          <Link
+            href="/waitlist"
+            className="px-4 py-2 rounded-lg inline-block text-white bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-[length:200%_100%] bg-left hover:bg-right transition-all duration-500"
+          >
+            Join Waitlist
           </Link>
         </div>
 
@@ -87,7 +94,7 @@ export default function NavigationBar() {
               ))}
             </ul>
             <div className="flex flex-col gap-3 text-sm">
-              <Link href="/signin" onClick={() => setIsOpen(false)}>
+              {/*<Link href="/signin" onClick={() => setIsOpen(false)}>
                 Sign in
               </Link>
               <Link
@@ -96,6 +103,12 @@ export default function NavigationBar() {
                 onClick={() => setIsOpen(false)}
               >
                 Get Started
+              </Link>*/}
+              <Link
+                href="/waitlist"
+                className="text-center px-4 py-2 rounded-lg inline-block text-white bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-[length:200%_100%] bg-left hover:bg-right transition-all duration-500"
+              >
+                Join Waitlist
               </Link>
             </div>
           </div>

@@ -48,10 +48,10 @@ export default function WaitlistPage() {
   };
 
   return (
-    <main className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-orange-50 to-blue-50">
-      <div className="container mx-auto px-4 py-16 flex flex-col lg:flex-row gap-12 items-center">
+    <main className=" bg-gradient-to-b from-orange-50 to-blue-50">
+      <div className="container mx-auto px-4 py-16 flex flex-col lg:flex-row gap-12 items-center lg:justify-center lg:min-h-[calc(100vh-80px)]">
         <section className="flex-1 max-w-xl">
-          <p className="inline-flex items-center gap-2 py-2 px-4 bg-white text-orange-500 outline outline-1 outline-orange-200 rounded-2xl mb-4 shadow-lg text-xs md:text-sm">
+          <p className="inline-flex items-center gap-2 py-2 px-4 bg-white text-orange-500 outline  outline-orange-200 rounded-2xl mb-4 shadow-lg text-xs md:text-sm">
             Be the first to experience ServiHub
           </p>
           <h1 className="text-4xl md:text-6xl lg:text-7xl text-slate-800 mb-6 font-500 leading-tight">
@@ -136,9 +136,8 @@ export default function WaitlistPage() {
 
               {message && (
                 <p
-                  className={`text-sm ${
-                    status === "success" ? "text-green-600" : "text-red-600"
-                  }`}
+                  className={`text-sm ${status === "success" ? "text-green-600" : "text-red-600"
+                    }`}
                 >
                   {message}
                 </p>
@@ -162,4 +161,3 @@ export default function WaitlistPage() {
     </main>
   );
 }
-
