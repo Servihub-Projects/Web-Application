@@ -41,9 +41,11 @@ export default function WaitlistPage() {
       setStatus("success");
       setMessage("You're on the list! We'll be in touch soon.");
       formElement.reset();
-    } catch (error: any) {
+    } catch (error) {
       setStatus("error");
-      setMessage(error.message || "Something went wrong. Please try again.");
+      if (error instanceof Error) {
+        setMessage(error.message || "Something went wrong. Please try again.");
+      }
     }
   };
 
