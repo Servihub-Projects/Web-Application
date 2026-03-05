@@ -13,8 +13,8 @@ export default function SectionHeader({ children }: { children: React.ReactNode 
 
 
 const colorVariants = {
-  orange: "text-orange-700 bg-orange-200",
-  blue: "text-blue-700 bg-blue-200",
+  orange: "text-orange-500 bg-orange-100",
+  blue: "text-blue-500 bg-blue-10 0",
 };
 
 
