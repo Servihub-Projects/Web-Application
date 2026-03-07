@@ -15,7 +15,7 @@ export default function NavigationBar() {
   ];
 
   return (
-    <nav className="border-b-2 border-b-gray-100 sticky top-0 bg-white">
+    <nav className="border-b-2 border-b-gray-100 sticky top-0 z-50 bg-white">
       <div className="mx-auto container flex justify-between items-center px-4 py-6">
         <Link href="/">Logo</Link>
         <ul className="md:flex justify-between list-none hidden">
