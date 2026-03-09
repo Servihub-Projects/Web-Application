@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 
 export default function WaitlistPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -40,23 +41,26 @@ export default function WaitlistPage() {
 
       setStatus("success");
       setMessage("You're on the list! We'll be in touch soon.");
+      toast.success("You're on the list! We'll be in touch soon.")
       formElement.reset();
-    } catch (error: any) {
+    } catch (error) {
       setStatus("error");
-      setMessage(error.message || "Something went wrong. Please try again.");
+      if (error instanceof Error) {
+        setMessage(error.message || "Something went wrong. Please try again.");
+      }
     }
   };
 
   return (
-    <main className="min-h-[calc(100vh-80px)] bg-gradient-to-b from-orange-50 to-blue-50">
-      <div className="container mx-auto px-4 py-16 flex flex-col lg:flex-row gap-12 items-center">
+    <main className=" bg-linear-to-b from-orange-50 to-blue-50">
+      <div className="container mx-auto px-4 py-16 flex flex-col lg:flex-row gap-12 items-center lg:justify-center lg:min-h-[calc(100vh-80px)]">
         <section className="flex-1 max-w-xl">
-          <p className="inline-flex items-center gap-2 py-2 px-4 bg-white text-orange-500 outline outline-1 outline-orange-200 rounded-2xl mb-4 shadow-lg text-xs md:text-sm">
+          <p className="inline-flex items-center gap-2 py-2 px-4 bg-white text-orange-500 outline  outline-orange-200 rounded-2xl mb-4 shadow-lg text-xs md:text-sm">
             Be the first to experience ServiHub
           </p>
           <h1 className="text-4xl md:text-6xl lg:text-7xl text-slate-800 mb-6 font-500 leading-tight">
             Join the{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-orange-700">
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-orange-500 to-orange-700">
               early access
             </span>{" "}
             waitlist
@@ -136,9 +140,8 @@ export default function WaitlistPage() {
 
               {message && (
                 <p
-                  className={`text-sm ${
-                    status === "success" ? "text-green-600" : "text-red-600"
-                  }`}
+                  className={`text-sm ${status === "success" ? "text-green-600" : "text-red-600"
+                    }`}
                 >
                   {message}
                 </p>
@@ -147,7 +150,7 @@ export default function WaitlistPage() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="w-full px-4 py-2.5 rounded-lg text-sm md:text-base font-medium text-white bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-[length:200%_100%] bg-left hover:bg-right transition-all duration-500 disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
+                className="w-full px-4 py-2.5 rounded-lg text-sm md:text-base font-medium text-white bg-linear-to-r from-orange-500 via-red-500 to-orange-600 bg-size-[200%_100%] bg-left hover:bg-right transition-all duration-500 disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
               >
                 {status === "loading" ? "Joining waitlist..." : "Join the waitlist"}
               </button>
@@ -162,4 +165,3 @@ export default function WaitlistPage() {
     </main>
   );
 }
-
