@@ -14,7 +14,7 @@ const featureCardIconStyles: Record<FeatureCardType["iconColor"], { bg: string; 
 export default function FeaturesCard({ icon: Icon, iconColor, title, description }: FeatureCardType) {
   const styles = featureCardIconStyles[iconColor];
 
-  return <div className="relative p-8 rounded-2xl border-1 border-gray-200 transition-all duration-200 before:-z-10 hover:border-orange-200 hover:shadow-xl before:content-[''] before:absolute before:-top-40 before:-right-40
+  return <div className="relative p-8 rounded-2xl border border-gray-200 transition-all duration-200 before:-z-10 hover:border-orange-200 hover:shadow-xl before:content-[''] before:absolute before:-top-40 before:-right-40
   before:w-60 before:h-60 before:rounded-full before:bg-orange-50/50 before:transition-transform before:duration-300
     hover:before:scale-150 overflow-clip">
 

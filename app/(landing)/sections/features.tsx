@@ -45,7 +45,6 @@ const FeaturesData: FeatureCardType[] = [
 export default function Features() {
   return (
     <section>
-
       <SectionHeader>
         <SectionTag color="orange" text="WHY CHOOSE SERVIHUB" />
         <Title text="World-Class Service Platform" />
