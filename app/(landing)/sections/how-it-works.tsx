@@ -33,13 +33,13 @@ const WorkflowProcess: workflowType[] = [
 
 ]
 export default function HowItWorks() {
-  return <section className="container mx-auto">
+  return <section>
     <SectionHeader>
       <SectionTag color="blue" text="SIMPLE PROCESS" />
       <Title text="How ServiHub Works" />
       <SubTitle text="Get the help you need in four simple steps. From search to completion, we've streamlined every part of the journey." />
     </SectionHeader>
-    <section className="grid grid-cols-4 gap-12">
+    <section className="relative grid md:grid-cols-4 gap-12 container mx-auto px-4 before:absolute before:content-['']  lg:before:w-340  before:h-1 before:bg-red-400 before:top-30 before:right-4">
       {WorkflowProcess.map((data, index) => (
         <Workflow key={index} number={index + 1} {...data} />
       ))}

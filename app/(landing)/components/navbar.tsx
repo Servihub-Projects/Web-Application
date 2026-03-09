@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -16,8 +17,10 @@ export default function NavigationBar() {
 
   return (
     <nav className="border-b-2 border-b-gray-100 sticky top-0 z-50 bg-white">
-      <div className="mx-auto container flex justify-between items-center px-4 py-6">
-        <Link href="/">Logo</Link>
+      <div className="mx-auto container flex justify-between items-center px-4 md:py-6">
+        <Link href="/"><Image className="w-16" src={"/logo.png"} alt="logo" width={192} height={192}>
+
+        </Image></Link>
         <ul className="md:flex justify-between list-none hidden">
           {navRoutes.map((route, index) => (
             <li key={index}>

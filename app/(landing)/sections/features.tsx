@@ -50,7 +50,7 @@ export default function Features() {
         <Title text="World-Class Service Platform" />
         <SubTitle text="Built for the global market with enterprise-grade security, compliance, and customer support that never sleeps" />
       </SectionHeader>
-      <div className="grid grid-cols-3 gap-8 container mx-auto">
+      <div className="grid md:grid-cols-3 gap-8 container mx-auto px-4">
         {FeaturesData.map((data, index) => (
           <FeaturesCard key={index} {...data} />
         ))}
