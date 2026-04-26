@@ -561,6 +561,15 @@ export const MOCK_CONVERSATIONS: Conversation[] = [
     unreadCount: { user_c4: 2, user_p5: 0 },
     createdAt: '2025-01-20T15:00:00Z',
   },
+  {
+    id: 'conv_05',
+    participants: ['user_c1', 'user_p1'],
+    bookingId: 'bkg_01',
+    lastMessage: "Good day sir. Yes, I can handle the 5kVA system. I'll need to visit the site first for assessment. When are you available?",
+    lastMessageAt: '2025-01-24T11:00:00Z',
+    unreadCount: { user_c1: 1, user_p1: 0 },
+    createdAt: '2024-09-28T11:30:00Z',
+  },
 ];
 
 // Messages
@@ -651,6 +660,78 @@ export const MOCK_MESSAGES: Message[] = [
     type: 'TEXT',
     isRead: false,
     createdAt: '2025-01-23T13:10:00Z',
+  },
+
+  // conv_05 — Mubarak ↔ Victor (rewiring → new solar enquiry)
+  {
+    id: 'msg_12',
+    conversationId: 'conv_05',
+    senderId: 'user_c1',
+    receiverId: 'user_p1',
+    content: 'Good morning Victor. I just confirmed the rewiring booking. Looking forward to having you on site.',
+    type: 'TEXT',
+    isRead: true,
+    createdAt: '2024-09-28T11:30:00Z',
+  },
+  {
+    id: 'msg_13',
+    conversationId: 'conv_05',
+    senderId: 'user_p1',
+    receiverId: 'user_c1',
+    content: 'Thank you sir. My team will be on site by 8am on October 1st. Please ensure the main switch is accessible.',
+    type: 'TEXT',
+    isRead: true,
+    createdAt: '2024-09-28T12:00:00Z',
+  },
+  {
+    id: 'msg_14',
+    conversationId: 'conv_05',
+    senderId: 'user_p1',
+    receiverId: 'user_c1',
+    content: 'Good morning sir. We are on site now. The old wiring is quite corroded but manageable. I will send a progress report by noon.',
+    type: 'TEXT',
+    isRead: true,
+    createdAt: '2024-10-01T08:15:00Z',
+  },
+  {
+    id: 'msg_15',
+    conversationId: 'conv_05',
+    senderId: 'user_p1',
+    receiverId: 'user_c1',
+    content: 'All four floors are now rewired. NERC test certificate is ready. The job is clean — you will be very happy.',
+    type: 'TEXT',
+    isRead: true,
+    createdAt: '2024-10-08T16:30:00Z',
+  },
+  {
+    id: 'msg_16',
+    conversationId: 'conv_05',
+    senderId: 'user_c1',
+    receiverId: 'user_p1',
+    content: "Excellent work Victor. Very professional and tidy. I'll release the final payment now. Will definitely call you again.",
+    type: 'TEXT',
+    isRead: true,
+    createdAt: '2024-10-08T17:45:00Z',
+  },
+  {
+    id: 'msg_17',
+    conversationId: 'conv_05',
+    senderId: 'user_c1',
+    receiverId: 'user_p1',
+    content: 'Victor, I have a solar installation job at my Ikoyi property — 5kVA hybrid system. Can you handle it? Budget is around ₦1.2M.',
+    type: 'TEXT',
+    isRead: true,
+    createdAt: '2025-01-24T09:30:00Z',
+  },
+  {
+    id: 'msg_18',
+    conversationId: 'conv_05',
+    senderId: 'user_p1',
+    receiverId: 'user_c1',
+    content: "Good day sir. Yes, I can handle the 5kVA system. I'll need to visit the site first for assessment. When are you available?",
+    type: 'TEXT',
+    isRead: false,
+    createdAt: '2025-01-24T11:00:00Z',
   },
 
   // conv_04 — Chukwuma ↔ Emeka (fence)
@@ -862,6 +943,17 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     isRead: false,
     actionUrl: '/dashboard/messages',
     createdAt: '2025-01-19T11:22:00Z',
+  },
+
+  {
+    id: 'notif_14',
+    userId: 'user_c1',
+    type: 'NEW_MESSAGE',
+    title: 'New message from Victor',
+    body: "Good day sir. Yes, I can handle the 5kVA system. I'll need to visit the site first for assessment. When are you available?",
+    isRead: false,
+    actionUrl: '/dashboard/messages',
+    createdAt: '2025-01-24T11:01:00Z',
   },
 
   // Victor (provider_1)

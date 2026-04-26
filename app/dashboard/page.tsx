@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { DollarSign, Briefcase, Users, Star, TrendingUp, Clock, ShieldCheck } from 'lucide-react';
+import { DollarSign, Briefcase, CheckCircle2, Star, TrendingUp, Clock, ShieldCheck, Users } from 'lucide-react';
 import { getCurrentUser } from '@/src/lib/auth/auth';
 import { getDashboardMetrics, getBookings } from '@/src/lib/data';
 import MetricCard from '@/src/components/dashboard/shared/metric-card';
@@ -56,10 +56,11 @@ export default async function DashboardPage() {
                 accent="green"
               />
               <MetricCard
-                label="Providers Hired"
-                value={metrics.providersUsed ?? 0}
-                icon={Users}
+                label="Jobs Completed"
+                value={metrics.completedJobs ?? 0}
+                icon={CheckCircle2}
                 accent="blue"
+                sub="Finished &amp; released"
               />
               <MetricCard
                 label="In Escrow"

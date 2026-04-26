@@ -159,7 +159,7 @@ export interface DashboardMetrics {
   completionRate?: number;
   pendingPayouts?: number;
   escrowBalance?: number;
-  providersUsed?: number;
+  completedJobs?: number;
   monthlyEarnings?: number;
 }
 

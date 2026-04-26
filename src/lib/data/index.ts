@@ -140,17 +140,15 @@ export async function getDashboardMetrics(
   );
 
   if (role === 'CLIENT') {
-    let activeBookings = 0, totalSpent = 0, escrowBalance = 0;
-    const providerIds = new Set<string>();
+    let activeBookings = 0, totalSpent = 0, escrowBalance = 0, completedJobs = 0;
 
     for (const b of userBookings) {
       if (b.status === 'PENDING' || b.status === 'ESCROW_PAID' || b.status === 'IN_PROGRESS') activeBookings++;
-      if (b.status === 'COMPLETED' || b.status === 'RELEASED') totalSpent += b.totalAmount;
+      if (b.status === 'COMPLETED' || b.status === 'RELEASED') { totalSpent += b.totalAmount; completedJobs++; }
       if (b.status === 'IN_PROGRESS' || b.status === 'ESCROW_PAID') escrowBalance += b.escrowAmount;
-      providerIds.add(b.providerId);
     }
 
-    return { totalBookings: userBookings.length, activeBookings, totalSpent, providersUsed: providerIds.size, escrowBalance };
+    return { totalBookings: userBookings.length, activeBookings, totalSpent, completedJobs, escrowBalance };
   }
 
   // PROVIDER — single pass over the array
