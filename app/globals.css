@@ -1,18 +1,88 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Brand tokens ─────────────────────────────────────────────────────── */
 :root {
-    --background: white;
-    --foreground: black;
-    --primary-color: #00c46c;
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --primary: #f97316;
+  --primary-hover: #ea6c10;
+  --accent: #00c46c;
+  --primary-color: #00c46c;
+
+  /* Dashboard surface */
+  --dash-bg: #f8fafc;
+  --dash-card: #ffffff;
+  --dash-border: #e2e8f0;
+  --dash-text: #0f172a;
+  --dash-text-muted: #64748b;
+  --dash-sidebar: #ffffff;
+  --dash-sidebar-border: #e2e8f0;
+
+  /* Sidebar dimensions */
+  --sidebar-w: 260px;
+  --sidebar-collapsed-w: 72px;
+  --header-h: 64px;
 }
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+
+  --dash-bg: #0f172a;
+  --dash-card: #1e293b;
+  --dash-border: #334155;
+  --dash-text: #f1f5f9;
+  --dash-text-muted: #94a3b8;
+  --dash-sidebar: #1e293b;
+  --dash-sidebar-border: #334155;
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
 body {
-    background: var(--background);
-    color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans, Arial, Helvetica, sans-serif);
 }
 
 @layer base {
-    button,
-    Link {
-        @apply cursor-pointer;
-    }
+  button,
+  a {
+    @apply cursor-pointer;
+  }
+
+  * {
+    @apply border-[var(--dash-border)];
+  }
+}
+
+/* ─── Reusable utilities ────────────────────────────────────────────────── */
+.btn-primary {
+  @apply px-4 py-2 rounded-lg text-white text-sm font-medium
+         bg-gradient-to-r from-orange-500 via-red-500 to-orange-600
+         bg-[length:200%_100%] bg-left hover:bg-right
+         transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 rounded-lg text-sm font-medium border
+         text-[var(--dash-text)] border-[var(--dash-border)]
+         hover:bg-[var(--dash-bg)] transition-colors;
+}
+
+.card {
+  @apply bg-[var(--dash-card)] border border-[var(--dash-border)] rounded-xl;
+}
+
+.input-field {
+  @apply w-full px-3 py-2.5 rounded-lg border border-[var(--dash-border)]
+         bg-[var(--dash-card)] text-[var(--dash-text)] text-sm
+         placeholder:text-[var(--dash-text-muted)]
+         focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent
+         transition-colors;
+}
+
+.label {
+  @apply block text-sm font-medium text-[var(--dash-text)] mb-1.5;
 }

@@ -39,7 +39,7 @@ export default function HowItWorks() {
       <Title text="How ServiHub Works" />
       <SubTitle text="Get the help you need in four simple steps. From search to completion, we've streamlined every part of the journey." />
     </SectionHeader>
-    <section className="relative grid md:grid-cols-4 gap-12 container mx-auto px-4 before:absolute before:content-['']  lg:before:w-340  before:h-1 before:bg-red-400 before:top-30 before:right-4">
+    <section className="relative grid md:grid-cols-4 gap-12 container mx-auto px-4 before:absolute before:content-[''] before:hidden lg:before:block before:h-px before:bg-gradient-to-r before:from-orange-200 before:via-orange-300 before:to-orange-200 before:top-14 before:left-[13%] before:right-[13%]">
       {WorkflowProcess.map((data, index) => (
         <Workflow key={index} number={index + 1} {...data} />
       ))}
