@@ -1,59 +1,59 @@
-"use client"
+import { Shield, BadgeCheck, MessageSquare } from "lucide-react";
+import SectionHeader, { SectionTag, Title, SubTitle } from "../components/section-header";
 
-import { Clock, CreditCard, MessageSquare, Shield, Star, Tag } from "lucide-react";
-import FeaturesCard from "../components/features-card";
-import SectionHeader, { SectionTag, SubTitle, Title } from "../components/section-header";
-import { FeatureCardType } from "@/src/types/landing-page-features-card";
-const FeaturesData: FeatureCardType[] = [
+const WHY = [
   {
     icon: Shield,
-    iconColor: "orange",
-    title: "Verified Professional",
-    description: "Rigorous vetting process with international background checks, license verification, and insurance validation for complete peace of mind.",
+    iconBg: "bg-orange-50",
+    iconColor: "text-orange-500",
+    title: "Escrow protection on every job",
+    description:
+      "Your money is held by ServiHub until the work is done to your satisfaction. No completion — no payment. It's that simple.",
   },
   {
-    icon: Clock,
-    iconColor: "blue",
-    title: "Instant Booking",
-    description: "Real-time availability across time zones. Book services in seconds with instant confirmation and automated scheduling.",
-  },
-  {
-    icon: CreditCard,
-    iconColor: "green",
-    title: "Secure Global Payments",
-    description: "Multi-currency support with bank-level encryption. Funds held in escrow with buyer protection guarantee.",
-  },
-  {
-    icon: Star,
-    iconColor: "yellow",
-    title: "Quality Assurance",
-    description: "Comprehensive review system with verified ratings.Our satisfaction guarantee and dispute resolution protect every transaction.",
+    icon: BadgeCheck,
+    iconBg: "bg-blue-50",
+    iconColor: "text-blue-500",
+    title: "Background-checked professionals",
+    description:
+      "Every provider is vetted — credentials confirmed, trade licences checked, and reviewed by real customers before going live.",
   },
   {
     icon: MessageSquare,
-    iconColor: "pink",
-    title: "Real-Time Communication",
-    description: "Built-in chat with translation support. Share files, photos, and collaborate seamlessly with providers worldwide.",
+    iconBg: "bg-green-50",
+    iconColor: "text-green-600",
+    title: "Coordinate everything in-app",
+    description:
+      "Message, share photos, and confirm job details — all inside ServiHub. No need to share private phone numbers with strangers.",
   },
-  {
-    icon: Tag,
-    iconColor: "purple",
-    title: "Global-Local Service",
-    description: "International platform connecting you with trusted local professionals. Support local businesses with global standards.",
-  },
-]
+];
+
 export default function Features() {
   return (
-    <section>
+    <section id="features" className="py-14 md:py-20 bg-slate-50">
       <SectionHeader>
-        <SectionTag color="orange" text="WHY CHOOSE SERVIHUB" />
-        <Title text="World-Class Service Platform" />
-        <SubTitle text="Built for the global market with enterprise-grade security, compliance, and customer support that never sleeps" />
+        <SectionTag color="orange" text="WHY SERVIHUB" />
+        <Title text="Built around your protection" />
+        <SubTitle text="Three things that separate ServiHub from WhatsApp referrals and random marketplace listings" />
       </SectionHeader>
-      <div className="grid md:grid-cols-3 gap-8 container mx-auto px-4">
-        {FeaturesData.map((data, index) => (
-          <FeaturesCard key={index} {...data} />
-        ))}
+
+      <div className="container mx-auto px-4">
+        <div className="grid md:grid-cols-3 gap-5">
+          {WHY.map((item) => (
+            <div
+              key={item.title}
+              className="bg-white p-7 rounded-2xl border border-slate-100 hover:border-orange-100 hover:shadow-sm transition-all duration-200"
+            >
+              <div
+                className={`w-11 h-11 rounded-xl ${item.iconBg} flex items-center justify-center mb-5`}
+              >
+                <item.icon size={22} className={item.iconColor} />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{item.title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{item.description}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
