@@ -17,7 +17,7 @@ export default function NavigationBar() {
 
   return (
     <nav className="border-b-2 border-b-gray-100 sticky top-0 z-50 bg-white">
-      <div className="mx-auto container flex justify-between items-center px-4 md:py-6">
+      <div className="mx-auto container flex justify-between items-center px-4 md:py-2">
         <Link href="/"><Image className="w-16" src={"/logo.png"} alt="logo" width={192} height={192}>
 
         </Image></Link>
@@ -38,7 +38,7 @@ export default function NavigationBar() {
           </Link>*/}
           <Link
             href="/waitlist"
-            className="px-4 py-2 rounded-lg inline-block text-white bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 bg-[length:200%_100%] bg-left hover:bg-right transition-all duration-500"
+            className="px-4 py-2 rounded-lg inline-block text-white bg-linear-to-r from-orange-500 via-red-500 to-orange-600 bg-size-[200%_100%] bg-left hover:bg-right transition-all duration-500"
           >
             Join Waitlist
           </Link>
