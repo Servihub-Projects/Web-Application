@@ -12,23 +12,23 @@ import type { CurrencyCode, UserRole } from '@/src/lib/types';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.string().email('Enter a valid email address.'),
+  email: z.email('Enter a valid email address.'),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   role: z.enum(['CLIENT', 'PROVIDER']),
-  preferredCurrency: z.enum(['NGN', 'USD', 'GBP', 'EUR', 'GHS']),
+  preferredCurrency: z.enum(['NGN', 'USD']),
   location: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
 
 const roles: { value: UserRole; label: string; description: string; icon: typeof User }[] = [
-  { value: 'CLIENT',   label: 'Client',   description: 'I want to hire professionals', icon: User      },
-  { value: 'PROVIDER', label: 'Provider', description: 'I want to offer my services',  icon: Briefcase },
+  { value: 'CLIENT', label: 'Client', description: 'I want to hire professionals', icon: User },
+  { value: 'PROVIDER', label: 'Provider', description: 'I want to offer my services', icon: Briefcase },
 ];
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const { submit, isPending, error } = useRegister();
+  const { authRegister, isPending, error } = useRegister();
 
   const {
     register,
@@ -44,7 +44,7 @@ export default function RegisterForm() {
   const selectedRole = watch('role');
 
   const onSubmit = (data: FormValues) => {
-    submit(
+    authRegister(
       data.name,
       data.email,
       data.password,

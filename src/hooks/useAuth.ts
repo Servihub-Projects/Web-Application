@@ -26,7 +26,7 @@ export function useRegister() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function submit(
+  function authRegister(
     name: string,
     email: string,
     password: string,
@@ -48,7 +48,7 @@ export function useRegister() {
     });
   }
 
-  return { submit, isPending, error, clearError: () => setError(null) };
+  return { authRegister, isPending, error, clearError: () => setError(null) };
 }
 
 export function useLogout() {

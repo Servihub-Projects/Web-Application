@@ -5,7 +5,7 @@ const SESSION_COOKIE = 'sh_session';
 const PROTECTED = ['/dashboard'];
 const AUTH_ONLY = ['/login', '/register'];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const session = req.cookies.get(SESSION_COOKIE);
 
