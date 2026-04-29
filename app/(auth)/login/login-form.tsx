@@ -57,7 +57,7 @@ export default function LoginForm() {
           <label htmlFor="password" className="label" style={{ marginBottom: 0 }}>
             Password
           </label>
-          <Link href="#" className="text-xs text-orange-500 hover:text-orange-600">
+          <Link href={`/forgot-password`} className="text-xs text-orange-500 hover:text-orange-600">
             Forgot password?
           </Link>
         </div>
