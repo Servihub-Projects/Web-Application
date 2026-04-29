@@ -8,7 +8,7 @@ export function useLogin() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function submit(email: string, password: string) {
+  function authLogin(email: string, password: string) {
     setError(null);
     startTransition(async () => {
       const fd = new FormData();
@@ -19,7 +19,7 @@ export function useLogin() {
     });
   }
 
-  return { submit, isPending, error, clearError: () => setError(null) };
+  return { authLogin, isPending, error, clearError: () => setError(null) };
 }
 
 export function useRegister() {

@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { useLogin } from '@/src/hooks/useAuth';
 
 const schema = z.object({
-  email: z.string().email('Enter a valid email address.'),
+  email: z.email('Enter a valid email address.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
 });
 
@@ -17,7 +17,7 @@ type FormValues = z.infer<typeof schema>;
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const { submit, isPending, error } = useLogin();
+  const { authLogin, isPending, error } = useLogin();
 
   const {
     register,
@@ -26,7 +26,7 @@ export default function LoginForm() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const onSubmit = (data: FormValues) => {
-    submit(data.email, data.password);
+    authLogin(data.email, data.password);
   };
 
   return (
