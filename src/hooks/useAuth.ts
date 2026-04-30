@@ -3,6 +3,7 @@
 import { useTransition, useState } from 'react';
 import { loginAction, registerAction, logoutAction } from '@/src/actions/auth';
 import type { CurrencyCode, UserRole } from '@/src/lib/types';
+import { toast } from 'sonner';
 
 export function useLogin() {
   const [isPending, startTransition] = useTransition();
@@ -61,4 +62,26 @@ export function useLogout() {
   }
 
   return { submit, isPending };
+}
+
+type data = {
+  email: string
+}
+export function useResetPassword() {
+  const [isPending, startTransition] = useTransition()
+  function sendResetPasswordEmail(data: data) {
+    startTransition(async () => {
+      try {
+        await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
+        toast.success('Password reset link sent to your email.');
+      } catch (err) {
+        toast.error('Something went wrong. Try again.');
+      }
+    })
+  }
+
+  return { sendResetPasswordEmail, isPending }
 }
