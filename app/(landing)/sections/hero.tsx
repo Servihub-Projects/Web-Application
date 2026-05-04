@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { MapPin, ArrowRight, Zap, Wrench, Hammer, Paintbrush, Layers, Sofa, Star, BadgeCheck } from "lucide-react";
+import ProtectedNavButton from "../components/protected-nav-button";
 
 const CATEGORIES = [
   { label: "Electrical", icon: Zap, href: "/dashboard/discover?category=Electrical" },
@@ -42,18 +42,20 @@ export default function HeroSection() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
-              <Link
-                href="/dashboard/discover"
+              <ProtectedNavButton
+                destination="/dashboard/discover"
+                fallback="/login"
                 className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm transition-colors shadow-sm"
               >
                 Find a Provider <ArrowRight size={16} />
-              </Link>
-              <Link
-                href="/waitlist"
+              </ProtectedNavButton>
+              <ProtectedNavButton
+                destination="/dashboard"
+                fallback="/register"
                 className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-700 hover:border-orange-300 hover:text-orange-600 font-semibold text-sm transition-colors"
               >
                 Are you a provider? Join here
-              </Link>
+              </ProtectedNavButton>
             </div>
 
             {/* Category chips */}
@@ -63,14 +65,15 @@ export default function HeroSection() {
               </p>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((cat) => (
-                  <Link
+                  <ProtectedNavButton
                     key={cat.label}
-                    href={cat.href}
+                    destination={cat.href}
+                    fallback="/login"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-xs text-slate-600 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
                   >
                     <cat.icon size={12} />
                     {cat.label}
-                  </Link>
+                  </ProtectedNavButton>
                 ))}
               </div>
             </div>
@@ -152,12 +155,13 @@ function ProviderCardVisual() {
         </div>
 
         {/* CTA */}
-        <Link
-          href="/dashboard/discover"
+        <ProtectedNavButton
+          destination="/dashboard/discover"
+          fallback="/login"
           className="block w-full text-center py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors"
         >
           Book Victor →
-        </Link>
+        </ProtectedNavButton>
       </div>
 
       {/* Floating escrow badge */}

@@ -2,9 +2,10 @@
 
 import { Sun, Moon, LogOut, ChevronDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTheme, useThemeSync } from '@/src/hooks/useTheme';
 import { useCurrencySync } from '@/src/hooks/useCurrency';
-import { logoutAction } from '@/src/actions/auth';
+import { useAuthStore } from '@/src/stores/auth-store';
 import { cn, initials } from '@/src/lib/utils';
 import type { Notification, SessionUser } from '@/src/lib/types';
 import NotificationPanel from './notifications/notification-panel';
@@ -15,6 +16,8 @@ interface DashboardNavbarProps {
 }
 
 export default function DashboardNavbar({ user, notifications }: DashboardNavbarProps) {
+  const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
   const { theme, toggle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -84,18 +87,18 @@ export default function DashboardNavbar({ user, notifications }: DashboardNavbar
               </span>
             </div>
 
-            <form
-              action={logoutAction}
-              onSubmit={() => setMenuOpen(false)}
+            <button
+              type="button"
+              onClick={async () => {
+                setMenuOpen(false);
+                await logout();
+                router.push('/');
+              }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
             >
-              <button
-                type="submit"
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-              >
-                <LogOut size={14} />
-                Sign out
-              </button>
-            </form>
+              <LogOut size={14} />
+              Sign out
+            </button>
           </div>
         )}
       </div>

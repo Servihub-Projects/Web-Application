@@ -1,25 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { SESSION_COOKIE_NAME } from '@/src/lib/auth/session-constants';
+import { parseSessionTokenEdge } from '@/src/lib/auth/session-token-edge';
 
-const SESSION_COOKIE = 'sh_session';
+const AUTH_ONLY_PREFIXES = ['/login', '/register'] as const;
 
-const PROTECTED = ['/dashboard'];
-const AUTH_ONLY = ['/login', '/register'];
+export async function proxy(req: NextRequest) {
+  const { pathname, search } = req.nextUrl;
+  const raw = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  const user = raw ? await parseSessionTokenEdge(raw) : null;
 
-export function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  const session = req.cookies.get(SESSION_COOKIE);
+  const isProtected = pathname.startsWith('/dashboard');
+  const isAuthPage = AUTH_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
-  const isProtected = PROTECTED.some((p) => pathname.startsWith(p));
-  const isAuthPage = AUTH_ONLY.some((p) => pathname.startsWith(p));
-
-  if (isProtected && !session) {
+  if (isProtected && !user) {
     const url = req.nextUrl.clone();
     url.pathname = '/login';
-    url.searchParams.set('from', pathname);
+    url.searchParams.set('from', `${pathname}${search}`);
     return NextResponse.redirect(url);
   }
 
-  if (isAuthPage && session) {
+  if (isAuthPage && user) {
     return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
@@ -27,5 +28,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/register'],
+  matcher: ['/dashboard', '/dashboard/:path*', '/login', '/login/:path*', '/register', '/register/:path*'],
 };

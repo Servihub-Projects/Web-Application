@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import LoginForm from './login-form';
 
 export const metadata: Metadata = { title: 'Sign In' };
@@ -12,7 +13,9 @@ export default function LoginPage() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
-        <LoginForm />
+        <Suspense fallback={<div className="h-40 animate-pulse rounded-lg bg-gray-100" />}>
+          <LoginForm />
+        </Suspense>
       </div>
 
       {process.env.NODE_ENV === 'development' && (

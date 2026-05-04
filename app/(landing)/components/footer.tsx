@@ -1,12 +1,30 @@
 import Link from "next/link";
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { FOOTER_CONTACT } from "@/src/lib/constants/footer-contact";
 
-const SOCIALS = [
-  { icon: Facebook, label: "Facebook" },
-  { icon: Twitter, label: "Twitter" },
-  { icon: Instagram, label: "Instagram" },
-  { icon: Linkedin, label: "LinkedIn" },
+const officeMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${FOOTER_CONTACT.addressLine} ${FOOTER_CONTACT.postalCode} Nigeria`,
+)}`;
+
+const socialConfig = [
+  {
+    icon: Facebook,
+    label: "Facebook",
+    href: FOOTER_CONTACT.social.facebook,
+  },
+  {
+    icon: Instagram,
+    label: "Instagram",
+    href: FOOTER_CONTACT.social.instagram,
+  },
+  {
+    icon: Twitter,
+    label: "Twitter",
+    href: FOOTER_CONTACT.social.twitter,
+  },
 ];
+
+const socialLinks = socialConfig.filter((s) => s.href.length > 0);
 
 export function Footer() {
   return (
@@ -26,10 +44,12 @@ export function Footer() {
               Harcourt, and beyond.
             </p>
             <div className="flex gap-3">
-              {SOCIALS.map(({ icon: Icon, label }) => (
+              {socialLinks.map(({ icon: Icon, label, href }) => (
                 <a
                   key={label}
-                  href="#"
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={label}
                   className="w-9 h-9 bg-slate-800 rounded-full flex items-center justify-center hover:bg-orange-500 transition-colors"
                 >
@@ -113,12 +133,12 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <Link
-                  href="mailto:support@servihub.com"
+                <a
+                  href={`mailto:${FOOTER_CONTACT.email}`}
                   className="hover:text-orange-400 transition-colors"
                 >
                   Contact
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -131,21 +151,38 @@ export function Footer() {
               <Mail className="text-orange-500 mt-0.5 shrink-0" size={16} />
               <div>
                 <div className="text-white font-medium mb-0.5">Email</div>
-                <div>support@servihub.com</div>
+                <a href={`mailto:${FOOTER_CONTACT.email}`} className="hover:text-orange-400 transition-colors">
+                  {FOOTER_CONTACT.email}
+                </a>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Phone className="text-orange-500 mt-0.5 shrink-0" size={16} />
               <div>
                 <div className="text-white font-medium mb-0.5">Phone</div>
-                <div>+234 900 000 0000</div>
+                <a
+                  href={`tel:${FOOTER_CONTACT.phoneTel}`}
+                  className="hover:text-orange-400 transition-colors"
+                >
+                  {FOOTER_CONTACT.phoneDisplay}
+                </a>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <MapPin className="text-orange-500 mt-0.5 shrink-0" size={16} />
               <div>
                 <div className="text-white font-medium mb-0.5">Office</div>
-                <div>Victoria Island, Lagos, Nigeria</div>
+                <a
+                  href={officeMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-orange-400 transition-colors inline-block"
+                >
+                  {FOOTER_CONTACT.addressLine}
+                  <span className="text-slate-500 block mt-1">
+                    Postal code: {FOOTER_CONTACT.postalCode}
+                  </span>
+                </a>
               </div>
             </div>
           </div>
