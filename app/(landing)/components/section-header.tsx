@@ -4,7 +4,7 @@ import clsx from "clsx";
 
 export default function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <header className="text-center py-16 container mx-auto px-4">
+    <header className="text-center py-8 md:py-12 container mx-auto px-4">
       {children}
     </header>
   );
@@ -30,7 +30,7 @@ export const Title = ({ text }: { text: string }) => {
 }
 
 export const SubTitle = ({ text }: { text: string }) => {
-  return <p className="text-slate-700 md:text-xl  mx-auto">
+  return <p className="text-slate-500 md:text-lg max-w-2xl mx-auto leading-relaxed">
     {text}
   </p>
 }
