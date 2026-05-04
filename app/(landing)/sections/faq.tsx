@@ -6,105 +6,88 @@ import {
   AccordionTrigger,
 } from "../components/ui/accordion";
 
-const faqs = [
+const FAQS = [
   {
-    question: "How do I book a service on ServiHub?",
-    answer:
-      "Simply search for the service you need, browse through verified professionals, compare their ratings and prices, and book instantly with your preferred provider. You can schedule a time that works best for you.",
+    q: "How does escrow work on ServiHub?",
+    a: "When you book a service, your payment is held securely by ServiHub — not the provider. Funds are released to the provider only after you confirm the job is done to your satisfaction. If there's a dispute, our team reviews the evidence and resolves it.",
   },
   {
-    question: "Are all service providers verified?",
-    answer:
-      "Yes! All service providers on ServiHub go through a thorough vetting process including background checks, license verification, and insurance confirmation. We ensure only qualified professionals join our platform.",
+    q: "Are providers vetted before they join?",
+    a: "Yes. Every provider goes through credential verification, trade licence checks, and identity confirmation before their profile goes live. Verified badges on profiles indicate completed checks.",
   },
   {
-    question: "How does payment work?",
-    answer:
-      "Payments are processed securely through our platform. Your payment is held in escrow until the service is completed to your satisfaction. You can pay using credit cards, debit cards, or digital wallets.",
+    q: "Can I book a provider for the same day?",
+    a: "Yes. Where providers show 'Available now' on their profile, same-day bookings are possible. Use the availability filter in Discover to find providers with immediate availability in your area.",
   },
   {
-    question: "What if I'm not satisfied with the service?",
-    answer:
-      "We have a satisfaction guarantee. If you're not happy with the service, contact our support team within 48 hours. We'll work with you and the provider to resolve any issues or process a refund if necessary.",
+    q: "What if a provider doesn't show up or does poor work?",
+    a: "Raise a dispute within 48 hours of the job completion date. Our support team will review the evidence — photos, messages, job description — and either arrange a re-do or issue a full refund from escrow.",
   },
   {
-    question: "Can I cancel or reschedule a booking?",
-    answer:
-      "Yes, you can cancel or reschedule bookings through your account dashboard. Cancellation policies vary by provider, but most allow free cancellation up to 24 hours before the scheduled service.",
-  },
-  {
-    question: "How do I become a service provider on ServiHub?",
-    answer:
-      'Click on "Become a Provider" and complete the application process. You\'ll need to provide your credentials, undergo a background check, and verify your insurance. Once approved, you can start accepting bookings.',
-  },
-  {
-    question: "Is there a service fee?",
-    answer:
-      "For customers, there's a small service fee added to each booking that covers platform maintenance and customer support. Service providers keep 85% of their earnings, with 15% going to platform fees.",
-  },
-  {
-    question: "What areas does ServiHub serve?",
-    answer:
-      "ServiHub is available in major cities across the country and expanding rapidly. Enter your location to see if service providers are available in your area. New cities are added regularly.",
+    q: "What cities is ServiHub active in?",
+    a: "We are currently active in Lagos, Abuja, Port Harcourt, Enugu, Kano, and Ibadan. We expand to new cities every quarter — join the waitlist to be notified when we launch in your city.",
   },
 ];
 
 export function FAQ() {
   return (
-    <section id="faq" className="py-20 bg-white">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-16">
-          <h2 className="text-2xl md:text-4xl font-bold text-slate-900 mb-4">
-            Frequently Asked Questions
+    <section id="faq" className="py-14 md:py-20 bg-slate-50">
+      <div className="container mx-auto px-4 max-w-3xl">
+        <div className="text-center mb-10 md:mb-12">
+          <p className="text-[10px] font-bold text-orange-500 uppercase tracking-widest mb-3">
+            FAQ
+          </p>
+          <h2 className="text-2xl md:text-4xl font-bold text-slate-900 mb-3">
+            Common questions
           </h2>
-          <p className="md:text-xl text-slate-600">
-            Got questions? We&apos;ve got answers
+          <p className="text-slate-500 text-sm md:text-base">
+            Everything you need to know before your first booking
           </p>
         </div>
 
-        <Accordion type="single" collapsible className="space-y-4">
-          {faqs.map((faq, index) => (
+        <Accordion type="single" collapsible className="space-y-3">
+          {FAQS.map((faq, i) => (
             <AccordionItem
-              key={index}
-              value={`item-${index}`}
-              className="border border-gray-200 rounded-lg px-6 hover:border-orange-300 transition-colors"
+              key={i}
+              value={`item-${i}`}
+              className="border border-slate-200 rounded-xl px-5 bg-white hover:border-orange-200 transition-colors"
             >
               <AccordionTrigger className="text-left hover:no-underline py-4 flex w-full items-center justify-between [&[data-state=open]>svg]:rotate-180">
-                <span className="font-semibold text-gray-900 pr-4">
-                  {faq.question}
+                <span className="font-semibold text-slate-800 pr-4 text-sm md:text-base">
+                  {faq.q}
                 </span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="shrink-0 transition-transform duration-200"
+                  className="shrink-0 text-slate-400 transition-transform duration-200"
                 >
                   <path d="m6 9 6 6 6-6" />
                 </svg>
               </AccordionTrigger>
-              <AccordionContent className="text-gray-600 pb-4 leading-relaxed">
-                {faq.answer}
+              <AccordionContent className="text-slate-500 pb-4 text-sm leading-relaxed">
+                {faq.a}
               </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
 
-        <div className="mt-12 text-center p-8 bg-orange-50 rounded-xl">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+        <div className="mt-10 text-center p-7 bg-orange-50 rounded-2xl border border-orange-100">
+          <h3 className="text-lg font-bold text-slate-900 mb-1">
             Still have questions?
           </h3>
-          <p className="text-gray-600 mb-4">
+          <p className="text-slate-500 text-sm mb-4">
             Our support team is here to help you 24/7
           </p>
           <Link
             href="mailto:support@servihub.com"
-            className="inline-block px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors"
+            className="inline-block px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             Contact Support
           </Link>
