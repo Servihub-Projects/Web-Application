@@ -54,11 +54,7 @@ export default function NavigationBar() {
           </Link>
           <Link
             href="/waitlist"
-<<<<<<< HEAD
-            className="px-4 py-2 rounded-lg inline-block text-white bg-linear-to-r from-orange-500 via-red-500 to-orange-600 bg-size-[200%_100%] bg-left hover:bg-right transition-all duration-500"
-=======
             className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-colors"
->>>>>>> main
           >
             Join Waitlist
           </Link>
