@@ -1,6 +1,3 @@
-// ServiHub — PostgreSQL schema (reference only, not connected)
-// Migration path: npx prisma init → update DATABASE_URL → npx prisma migrate dev
-
 generator client {
   provider = "prisma-client-js"
 }
