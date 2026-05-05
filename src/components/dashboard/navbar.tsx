@@ -55,7 +55,7 @@ export default function DashboardNavbar({ user, notifications }: DashboardNavbar
           onClick={() => setMenuOpen((v) => !v)}
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-[var(--dash-bg)] transition-colors"
         >
-          <div className="w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center text-xs font-bold text-orange-600 flex-shrink-0">
+          <div className="w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center text-xs font-bold text-orange-600 `shrink-0">
             {initials(user.name)}
           </div>
           <span className="text-sm font-medium text-[var(--dash-text)] hidden sm:block">
