@@ -18,16 +18,16 @@ const CATEGORIES: ServiceCategory[] = [
 ];
 
 const URGENCY_CONFIG: Record<JobUrgency, { label: string; color: string }> = {
-  FLEXIBLE:    { label: 'Flexible',     color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' },
+  FLEXIBLE: { label: 'Flexible', color: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' },
   WITHIN_WEEK: { label: 'Within a week', color: 'bg-blue-50 text-blue-600 dark:bg-blue-950/30' },
-  URGENT:      { label: 'Urgent',       color: 'bg-red-50 text-red-600 dark:bg-red-950/30' },
+  URGENT: { label: 'Urgent', color: 'bg-red-50 text-red-600 dark:bg-red-950/30' },
 };
 
 export default function ClientDirectory({ jobRequests }: ClientDirectoryProps) {
-  const [search, setSearch]     = useState('');
+  const [search, setSearch] = useState('');
   const [category, setCategory] = useState<ServiceCategory | ''>('');
   const [location, setLocation] = useState('');
-  const [urgency, setUrgency]   = useState<JobUrgency | ''>('');
+  const [urgency, setUrgency] = useState<JobUrgency | ''>('');
   const format = useCurrency((s) => s.format);
 
   const filtered = jobRequests.filter((req) => {
@@ -71,7 +71,7 @@ export default function ClientDirectory({ jobRequests }: ClientDirectoryProps) {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2">
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as ServiceCategory | '')}
