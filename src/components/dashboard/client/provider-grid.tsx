@@ -30,17 +30,17 @@ const CATEGORIES: ServiceCategory[] = [
 
 // Price ranges in NGN (base currency)
 const PRICE_RANGES = [
-  { labelKey: 'any',    min: undefined,  max: undefined  },
-  { labelKey: 'u10k',   min: 0,          max: 10_000     },
-  { labelKey: 'u50k',   min: 10_000,     max: 50_000     },
-  { labelKey: 'u150k',  min: 50_000,     max: 150_000    },
-  { labelKey: 'over',   min: 150_000,    max: undefined  },
+  { labelKey: 'any', min: undefined, max: undefined },
+  { labelKey: 'u10k', min: 0, max: 10_000 },
+  { labelKey: 'u50k', min: 10_000, max: 50_000 },
+  { labelKey: 'u150k', min: 50_000, max: 150_000 },
+  { labelKey: 'over', min: 150_000, max: undefined },
 ];
 
 export default function ProviderGrid({ services }: ProviderGridProps) {
-  const [search, setSearch]       = useState('');
-  const [category, setCategory]   = useState<ServiceCategory | ''>('');
-  const [location, setLocation]   = useState('');
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState<ServiceCategory | ''>('');
+  const [location, setLocation] = useState('');
   const [priceRange, setPriceRange] = useState(0);
   const [minRating, setMinRating] = useState(0);
   const [isPending] = useTransition();
@@ -102,11 +102,11 @@ export default function ProviderGrid({ services }: ProviderGridProps) {
       </div>
 
       {/* Filter row */}
-      <div className="flex gap-2 flex-wrap">
+      <div className="grid grid-cols-2 md:grid-cols-4 w-full gap-2">
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value as ServiceCategory | '')}
-          className="input-field w-auto text-sm"
+          className="input-field text-sm "
         >
           <option value="">All categories</option>
           {CATEGORIES.map((c) => (
@@ -117,7 +117,7 @@ export default function ProviderGrid({ services }: ProviderGridProps) {
         <select
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          className="input-field w-auto text-sm"
+          className="input-field text-sm "
         >
           <option value="">All locations</option>
           {NIGERIAN_STATES.map((s) => (
@@ -128,7 +128,7 @@ export default function ProviderGrid({ services }: ProviderGridProps) {
         <select
           value={priceRange}
           onChange={(e) => setPriceRange(Number(e.target.value))}
-          className="input-field w-auto text-sm"
+          className="input-field  text-sm "
         >
           {priceLabels.map((label, i) => (
             <option key={i} value={i}>{label}</option>
@@ -138,7 +138,7 @@ export default function ProviderGrid({ services }: ProviderGridProps) {
         <select
           value={minRating}
           onChange={(e) => setMinRating(Number(e.target.value))}
-          className="input-field w-auto text-sm"
+          className="input-field text-sm"
         >
           <option value={0}>Any rating</option>
           <option value={4}>4+ stars</option>
