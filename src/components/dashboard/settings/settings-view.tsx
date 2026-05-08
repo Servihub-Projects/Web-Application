@@ -98,7 +98,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: typeof UserIcon; label: s
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').max(60),
-  email: z.string().email('Enter a valid email address.'),
+  email: z.email('Enter a valid email address.'),
   location: z.string().optional(),
   preferredCurrency: z.enum(['NGN', 'USD', 'GBP', 'EUR', 'GHS']),
   bio: z.string().max(300, 'Bio must be under 300 characters.').optional(),
@@ -127,7 +127,7 @@ function EditProfileModal({
     startTransition(async () => {
       const fd = new FormData();
       fd.append('name', data.name);
-      fd.append('email', data.email);
+      // fd.append('email', data.email);
       if (data.location) fd.append('location', data.location);
       fd.append('preferredCurrency', data.preferredCurrency);
       if (data.bio) fd.append('bio', data.bio);
@@ -158,7 +158,7 @@ function EditProfileModal({
             <input id="ep-name" type="text" autoComplete="name" className="input-field" {...register('name')} />
           </Field>
           <Field label="Email address" error={errors.email?.message} htmlFor="ep-email">
-            <input id="ep-email" type="email" autoComplete="email" className="input-field" {...register('email')} />
+            <input readOnly={true} id="ep-email" type="email" autoComplete="email" className="input-field bg-gray-100" defaultValue={user.email} />
           </Field>
         </div>
 
