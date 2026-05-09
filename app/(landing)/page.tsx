@@ -6,7 +6,6 @@ import FeaturedProviders from "./sections/featured-providers";
 import Features from "./sections/features";
 import Testimonials from "./sections/testimonials";
 import ProviderCTA from "./sections/provider-cta";
-import WaitlistInline from "./sections/waitlist-inline";
 import { FAQ } from "./sections/faq";
 
 export default function LandingPage() {
@@ -20,7 +19,6 @@ export default function LandingPage() {
       <Features />
       <Testimonials />
       <ProviderCTA />
-      <WaitlistInline />
       <FAQ />
     </main>
   );

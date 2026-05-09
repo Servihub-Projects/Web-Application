@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { cn, timeAgo } from '@/src/lib/utils';
 import type { Notification, NotificationType } from '@/src/lib/types';
+import { DropdownPanel, DropdownScrollArea, DropdownSection } from '@/src/components/ui/dropdown-panel';
 
 interface NotificationPanelProps {
   notifications: Notification[];
@@ -72,9 +73,8 @@ export default function NotificationPanel({ notifications }: NotificationPanelPr
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-80 sm:w-96 bg-[var(--dash-card)] rounded-xl border border-[var(--dash-border)] shadow-lg z-50 overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--dash-border)]">
+        <DropdownPanel className="w-80 sm:w-96 max-w-[calc(100vw-2rem)]">
+          <DropdownSection className="flex items-center justify-between border-b border-[var(--dash-border)] px-4 py-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-[var(--dash-text)]">Notifications</span>
               {unread > 0 && (
@@ -85,16 +85,16 @@ export default function NotificationPanel({ notifications }: NotificationPanelPr
             </div>
             {unread > 0 && (
               <button
+                type="button"
                 onClick={markAllRead}
                 className="text-xs text-orange-500 hover:text-orange-600 font-medium"
               >
                 Mark all read
               </button>
             )}
-          </div>
+          </DropdownSection>
 
-          {/* List */}
-          <div className="max-h-[420px] overflow-y-auto divide-y divide-[var(--dash-border)]">
+          <DropdownScrollArea className="divide-y divide-[var(--dash-border)]">
             {items.length === 0 ? (
               <div className="py-10 text-center">
                 <Bell size={28} className="mx-auto text-[var(--dash-text-muted)] mb-2 opacity-40" />
@@ -107,7 +107,7 @@ export default function NotificationPanel({ notifications }: NotificationPanelPr
                   <div
                     key={notif.id}
                     className={cn(
-                      'flex items-start gap-3 px-4 py-3 transition-colors relative',
+                      'group flex items-start gap-3 px-4 py-3 transition-colors relative',
                       !notif.isRead
                         ? 'bg-orange-50/50 dark:bg-orange-950/10'
                         : 'hover:bg-[var(--dash-bg)]'
@@ -166,10 +166,10 @@ export default function NotificationPanel({ notifications }: NotificationPanelPr
                 );
               })
             )}
-          </div>
+          </DropdownScrollArea>
 
           {items.length > 0 && (
-            <div className="border-t border-[var(--dash-border)] px-4 py-2.5">
+            <DropdownSection className="border-t border-[var(--dash-border)] px-4 py-2.5">
               <Link
                 href="/dashboard/notifications"
                 onClick={() => setOpen(false)}
@@ -177,9 +177,9 @@ export default function NotificationPanel({ notifications }: NotificationPanelPr
               >
                 View all notifications →
               </Link>
-            </div>
+            </DropdownSection>
           )}
-        </div>
+        </DropdownPanel>
       )}
     </div>
   );

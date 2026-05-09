@@ -12,6 +12,7 @@ import type {
   User,
   ServiceWithProvider,
   BookingWithDetails,
+  BookingStatus,
   DashboardMetrics,
   ServiceFilters,
   UserRole,
@@ -93,6 +94,41 @@ export async function getServices(filters?: ServiceFilters): Promise<ServiceWith
       },
     };
   });
+}
+
+export async function getServiceById(serviceId: string): Promise<ServiceWithProvider | null> {
+  const services = await getServices();
+  return services.find((s) => s.id === serviceId) ?? null;
+}
+
+/** Most recent booking for a provider (by completion date, else start date, else created). Excludes declined. */
+export async function getProvidersLastJob(providerId: string): Promise<{
+  serviceTitle: string;
+  category: string;
+  status: BookingStatus;
+  description: string;
+  dateIso: string;
+} | null> {
+  const list = MOCK_BOOKINGS.filter(
+    (b) => b.providerId === providerId && b.status !== 'DECLINED'
+  );
+  if (list.length === 0) return null;
+
+  const sorted = [...list].sort((a, b) => {
+    const ta = Date.parse(a.completionDate ?? a.startDate ?? a.createdAt);
+    const tb = Date.parse(b.completionDate ?? b.startDate ?? b.createdAt);
+    return tb - ta;
+  });
+
+  const booking = sorted[0];
+  const service = MOCK_SERVICES.find((s) => s.id === booking.serviceId);
+  return {
+    serviceTitle: service?.title ?? 'Service',
+    category: service?.category ?? '',
+    status: booking.status,
+    description: booking.description,
+    dateIso: booking.completionDate ?? booking.startDate ?? booking.createdAt,
+  };
 }
 
 // ---------------------------------------------------------------------------

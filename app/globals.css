@@ -20,6 +20,11 @@
   --dash-sidebar: #ffffff;
   --dash-sidebar-border: #e2e8f0;
 
+  /* Scrollbars (match dashboard surfaces + brand accent on hover) */
+  --scrollbar-track: #e8eef5;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #f97316;
+
   /* Sidebar dimensions */
   --sidebar-w: 260px;
   --sidebar-collapsed-w: 72px;
@@ -37,6 +42,10 @@
   --dash-text-muted: #94a3b8;
   --dash-sidebar: #1e293b;
   --dash-sidebar-border: #334155;
+
+  --scrollbar-track: #0f172a;
+  --scrollbar-thumb: #475569;
+  --scrollbar-thumb-hover: #fb923c;
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────── */
@@ -54,6 +63,44 @@ body {
 
   * {
     @apply border-[var(--dash-border)];
+  }
+
+  /* Themed scrollbars — document + all scrollable regions (WebKit + Firefox where supported) */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 9999px;
+    border: 2px solid var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
+}
+
+/* Firefox: scrollable areas inside the dashboard (thin + colors) */
+@layer utilities {
+  .app-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 }
 
@@ -85,4 +132,9 @@ body {
 
 .label {
   @apply block text-sm font-medium text-[var(--dash-text)] mb-1.5;
+}
+
+/* Mobile messaging: respect home indicator / safe areas */
+.safe-area-pb {
+  padding-bottom: max(0.25rem, env(safe-area-inset-bottom, 0px));
 }

@@ -67,7 +67,7 @@ export default function Sidebar({ user }: SidebarProps) {
     <>
       <aside
         className={cn(
-          'relative hidden lg:flex flex-col flex-shrink-0 transition-[width] duration-300 ease-in-out',
+          'relative hidden min-h-0 lg:flex flex-col flex-shrink-0 transition-[width] duration-300 ease-in-out',
           'bg-[var(--dash-sidebar)] border-r border-[var(--dash-sidebar-border)]',
           collapsed ? 'w-[72px]' : 'w-[260px]'
         )}
@@ -75,7 +75,13 @@ export default function Sidebar({ user }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center h-16 px-4 border-b border-[var(--dash-sidebar-border)] overflow-hidden">
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
-            <Image src="/logo.png" alt="ServiHub" width={28} height={28} className="flex-shrink-0" />
+            <Image
+              src="/logo.png"
+              alt="ServiHub"
+              width={28}
+              height={28}
+              className="flex-shrink-0 dark:mix-blend-multiply"
+            />
             {!collapsed && (
               <span className="font-semibold text-[var(--dash-text)] text-sm truncate">
                 ServiHub
@@ -101,7 +107,7 @@ export default function Sidebar({ user }: SidebarProps) {
         )}
 
         {/* Nav */}
-        <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+        <nav className="app-scrollbar flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-2 py-3 min-h-0">
           {links.map(({ label, href, icon: Icon, exact }) => {
             const active = isActive(href, exact);
             return (

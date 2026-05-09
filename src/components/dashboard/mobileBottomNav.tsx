@@ -89,131 +89,70 @@ export default function MobileBottomNav({ links, user }: MobileNavProps) {
       {/* Drawer */}
       {open && (
         <div
-          className="lg:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 z-50 bg-black/40"
           onClick={() => setOpen(false)}
         >
           <div
-            className={cn(
-              'absolute bottom-0 left-0 right-0',
-              'bg-[var(--dash-card)] rounded-t-3xl',
-              'px-4 pt-3 pb-8',
-              'shadow-2xl border-t border-[var(--dash-sidebar-border)]'
-            )}
+            className="absolute bottom-0 left-0 right-0 flex max-h-[min(85vh,28rem)] flex-col overflow-hidden rounded-t-2xl border border-[var(--dash-border)] border-b-0 bg-[var(--dash-card)] shadow-lg dark:border-[var(--dash-border)]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Drag handle */}
-            <div className="flex justify-center mb-4">
-              <div className="w-10 h-1.5 rounded-full bg-[var(--dash-border)]" />
-            </div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h3 className="text-base font-semibold text-[var(--dash-text)]">
-                  More
-                </h3>
-                <p className="text-xs text-[var(--dash-text-muted)]">
-                  Additional navigation and account options
-                </p>
-              </div>
-
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--dash-border)] px-4 py-3">
+              <h3 className="text-sm font-semibold text-[var(--dash-text)]">More</h3>
               <button
+                type="button"
                 onClick={() => setOpen(false)}
-                className={cn(
-                  'w-9 h-9 rounded-full',
-                  'flex items-center justify-center',
-                  'bg-[var(--dash-bg)] hover:bg-[var(--dash-border)]',
-                  'transition-colors'
-                )}
+                className="rounded-lg p-1.5 text-[var(--dash-text-muted)] hover:bg-[var(--dash-bg)] hover:text-[var(--dash-text)]"
+                aria-label="Close"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Vertical links */}
-            <div className="space-y-1 mb-5">
-              {overflowLinks.map(({ label, href, icon: Icon, exact }) => {
-                const active = isActive(href, exact);
-
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      'flex items-center gap-4',
-                      'px-4 py-3 rounded-2xl',
-                      'transition-colors',
-                      active
-                        ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/30'
-                        : 'text-[var(--dash-text-muted)] hover:bg-[var(--dash-bg)] hover:text-[var(--dash-text)]'
-                    )}
-                  >
-                    <div
+            <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4 pt-2">
+              <div className="mb-4 flex flex-col gap-1">
+                {overflowLinks.map(({ label, href, icon: Icon, exact }) => {
+                  const active = isActive(href, exact);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setOpen(false)}
                       className={cn(
-                        'w-10 h-10 rounded-xl flex items-center justify-center',
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                         active
-                          ? 'bg-orange-100 dark:bg-orange-900/30'
-                          : 'bg-[var(--dash-bg)]'
+                          ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/30'
+                          : 'text-[var(--dash-text-muted)] hover:bg-[var(--dash-bg)] hover:text-[var(--dash-text)]'
                       )}
                     >
-                      <Icon size={18} />
-                    </div>
+                      <Icon size={20} className="flex-shrink-0" />
+                      <span>{label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {label}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-
-            {/* Settings */}
-            <div className="mb-5">
               <Link
                 href="/dashboard/settings"
                 onClick={() => setOpen(false)}
                 className={cn(
-                  'flex items-center gap-4',
-                  'px-4 py-3 rounded-2xl transition-colors',
+                  'mb-4 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
                   pathname.startsWith('/dashboard/settings')
                     ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/30'
-                    : 'text-[var(--dash-text-muted)] hover:bg-[var(--dash-bg)] hover:text-[var(--dash-text)]'
+                    : 'text-[var(--dash-text-muted)]'
                 )}
               >
-                <div
-                  className={cn(
-                    'w-10 h-10 rounded-xl flex items-center justify-center',
-                    pathname.startsWith('/dashboard/settings')
-                      ? 'bg-orange-100 dark:bg-orange-900/30'
-                      : 'bg-[var(--dash-bg)]'
-                  )}
-                >
-                  <Settings size={18} />
-                </div>
-
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Settings</p>
-                </div>
+                <Settings size={18} />
+                <span>Settings</span>
               </Link>
-            </div>
 
-            {/* User */}
-            <div className="border-t border-[var(--dash-sidebar-border)] pt-4">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-orange-100 dark:bg-orange-950/40 flex items-center justify-center text-sm font-bold text-orange-600 flex-shrink-0">
+              <div className="flex items-center gap-3 border-t border-[var(--dash-sidebar-border)] pt-4">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 text-xs font-bold text-orange-600 dark:bg-orange-950/40">
                   {initials(user.name)}
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[var(--dash-text)] truncate">
-                    {user.name}
-                  </p>
-                  <p className="text-xs text-[var(--dash-text-muted)] truncate">
-                    {user.email}
-                  </p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-[var(--dash-text)]">{user.name}</p>
+                  <p className="truncate text-xs text-[var(--dash-text-muted)]">{user.email}</p>
                 </div>
               </div>
             </div>

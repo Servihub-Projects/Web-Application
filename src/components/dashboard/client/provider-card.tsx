@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { MapPin, Star, BadgeCheck, Clock } from 'lucide-react';
 import { cn, initials } from '@/src/lib/utils';
 import { useCurrency } from '@/src/hooks/useCurrency';
@@ -84,9 +85,20 @@ export default function ProviderCard({ service }: ProviderCardProps) {
         </div>
       </div>
 
-      <button className="btn-primary w-full text-sm py-2">
-        View & Hire
-      </button>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Link
+          href={`/dashboard/discover/service/${service.id}`}
+          className="btn-secondary flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
+        >
+          View
+        </Link>
+        <Link
+          href={`/dashboard/discover/service/${service.id}#hire`}
+          className="btn-primary flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
+        >
+          Hire
+        </Link>
+      </div>
     </div>
   );
 }

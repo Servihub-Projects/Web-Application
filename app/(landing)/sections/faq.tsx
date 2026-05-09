@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   Accordion,
@@ -6,7 +7,7 @@ import {
   AccordionTrigger,
 } from "../components/ui/accordion";
 
-const FAQS = [
+const FAQS: { q: string; a: ReactNode }[] = [
   {
     q: "How does escrow work on ServiHub?",
     a: "When you book a service, your payment is held securely by ServiHub — not the provider. Funds are released to the provider only after you confirm the job is done to your satisfaction. If there's a dispute, our team reviews the evidence and resolves it.",
@@ -25,7 +26,16 @@ const FAQS = [
   },
   {
     q: "What cities is ServiHub active in?",
-    a: "We are currently active in Lagos, Abuja, Port Harcourt, Enugu, Kano, and Ibadan. We expand to new cities every quarter — join the waitlist to be notified when we launch in your city.",
+    a: (
+      <>
+        We are currently active in Lagos, Abuja, Port Harcourt, Enugu, Kano, and Ibadan. We expand to
+        new cities every quarter — add your details on the{" "}
+        <Link href="/waitlist" className="font-medium text-orange-600 underline-offset-2 hover:underline">
+          waitlist page
+        </Link>{" "}
+        to get notified when we launch in your city.
+      </>
+    ),
   },
 ];
 

@@ -78,9 +78,9 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden />
 
-      <div className="relative z-10 w-full max-w-lg bg-[var(--dash-card)] rounded-2xl border border-[var(--dash-border)] shadow-xl max-h-[90vh] flex flex-col">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-card)] shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--dash-border)] flex-shrink-0">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--dash-border)] px-5 py-4">
           <div className="flex items-center gap-2.5">
             <BriefcaseBusiness size={16} className="text-orange-500" />
             <h3 className="text-base font-semibold text-[var(--dash-text)]">Post a Job</h3>
@@ -94,7 +94,7 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto flex-1 p-5">
+        <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
           <form id="post-job-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
               <div className="px-3 py-2.5 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">

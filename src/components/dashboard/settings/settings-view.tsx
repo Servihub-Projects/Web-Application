@@ -21,8 +21,8 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden />
-      <div className="relative z-10 w-full max-w-md bg-[var(--dash-card)] rounded-2xl border border-[var(--dash-border)] shadow-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--dash-border)]">
+      <div className="relative z-10 flex max-h-[min(90vh,720px)] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-card)] shadow-xl">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-[var(--dash-border)] px-5 py-4">
           <h3 className="text-base font-semibold text-[var(--dash-text)]">{title}</h3>
           <button
             onClick={onClose}
@@ -31,7 +31,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
             <X size={15} />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="app-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">{children}</div>
       </div>
     </div>
   );

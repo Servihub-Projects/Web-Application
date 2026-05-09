@@ -114,15 +114,31 @@ export interface Conversation {
   createdAt: string;
 }
 
+export interface MessageAttachment {
+  id: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  /** Preview or download URL (object URL locally, CDN when wired server-side). */
+  url: string;
+}
+
+export type MessageUploadStatus = 'uploading' | 'success' | 'error';
+
 export interface Message {
   id: string;
   conversationId: string;
   senderId: string;
   receiverId: string;
   content: string;
-  type: 'TEXT' | 'IMAGE' | 'SYSTEM';
+  type: 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
   isRead: boolean;
   createdAt: string;
+  attachment?: MessageAttachment;
+  uploadStatus?: MessageUploadStatus;
+  uploadError?: string;
+  /** Set only client-side when simulating uploads so Retry can replay the upload. */
+  localFile?: File;
 }
 
 export interface Notification {
