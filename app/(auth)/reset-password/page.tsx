@@ -3,23 +3,29 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import Link from 'next/link';
 
-const schema = z.object({
-  password: z.string().min(8, 'Password must be at least 8 characters.'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
+const schema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters.'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  });
 
 type FormValues = z.infer<typeof schema>;
 
 export default function ResetPasswordForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+
   const token = searchParams.get('token');
+  const email = searchParams.get('email');
 
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -34,29 +40,50 @@ export default function ResetPasswordForm() {
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: FormValues) => {
-    if (!token) {
-      setError('Invalid or missing reset token.');
-      return;
-    }
+  // Malformed link — render inline rather than crashing
+  if (!token || !email) {
+    return (
+      <div className="space-y-4 max-w-md mx-auto text-center">
+        <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          This reset link is invalid or has expired.
+        </div>
+        <Link
+          href="/forgot-password"
+          className="text-orange-500 hover:text-orange-600 font-medium text-sm"
+        >
+          Request a new link →
+        </Link>
+      </div>
+    );
+  }
 
+  const onSubmit = async (data: FormValues) => {
     setIsPending(true);
     setError(null);
     setMessage(null);
 
     try {
-      // TODO: replace with your API call
-      await fetch('/api/auth/reset-password', {
+      const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           token,
+          email,
           password: data.password,
         }),
       });
 
-      setMessage('Password reset successful. You can now log in.');
-    } catch (err) {
-      setError('Failed to reset password.');
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json.error ?? 'Failed to reset password. Please try again.');
+        return;
+      }
+
+      setMessage('Password reset successful. Redirecting to login…');
+      setTimeout(() => router.push('/login'), 2000);
+    } catch {
+      setError('Something went wrong. Please try again later.');
     } finally {
       setIsPending(false);
     }
@@ -69,7 +96,6 @@ export default function ResetPasswordForm() {
           {error}
         </div>
       )}
-
       {message && (
         <div className="px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">
           {message}
@@ -105,19 +131,24 @@ export default function ResetPasswordForm() {
           {...register('confirmPassword')}
         />
         {errors.confirmPassword && (
-          <p className="mt-1 text-xs text-red-600">
-            {errors.confirmPassword.message}
-          </p>
+          <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>
         )}
       </div>
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || !!message}
         className="btn-primary w-full py-2.5"
       >
         {isPending ? 'Resetting…' : 'Reset Password'}
       </button>
+
+      <p className="text-center text-sm text-gray-500">
+        Remember your password?{' '}
+        <Link href="/login" className="text-orange-500 hover:text-orange-600 font-medium">
+          Sign in
+        </Link>
+      </p>
     </form>
   );
 }

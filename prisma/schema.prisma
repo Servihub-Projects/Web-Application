@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -56,11 +57,12 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  servicesProvided   Service[]
-  bookingsAsClient   Booking[] @relation("ClientBookings")
-  bookingsAsProvider Booking[] @relation("ProviderBookings")
-  messagesSent       Message[] @relation("SentMessages")
-  messagesReceived   Message[] @relation("ReceivedMessages")
+  servicesProvided    Service[]
+  bookingsAsClient    Booking[]            @relation("ClientBookings")
+  bookingsAsProvider  Booking[]            @relation("ProviderBookings")
+  messagesSent        Message[]            @relation("SentMessages")
+  messagesReceived    Message[]            @relation("ReceivedMessages")
+  passwordResetTokens PasswordResetToken[]
 
   @@index([email])
   @@index([role])
@@ -148,4 +150,18 @@ model Message {
   @@index([senderId])
   @@index([receiverId])
   @@index([isRead])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
 }
