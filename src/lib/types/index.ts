@@ -1,5 +1,23 @@
 export type UserRole = 'CLIENT' | 'PROVIDER';
 
+// src/lib/types.ts  (add these alongside your existing types)
+
+export interface JobRequestFilters {
+  category?: ServiceCategory;
+  location?: string;
+  urgency?: JobUrgency;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
 export type BookingStatus =
   | 'PENDING'
   | 'ESCROW_PAID'
@@ -224,13 +242,14 @@ export interface ConversationWithParticipants extends Conversation {
 
 export interface ServiceFilters {
   category?: ServiceCategory;
+  location?: string;
   minPrice?: number;
   maxPrice?: number;
-  search?: string;
   minRating?: number;
-  location?: string;
+  search?: string;
+  page?: number;
+  pageSize?: number;
 }
-
 export interface JobRequestFilters {
   category?: ServiceCategory;
   location?: string;

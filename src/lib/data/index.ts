@@ -45,8 +45,26 @@ export async function getUserById(id: string): Promise<Omit<User, 'passwordHash'
 // Services
 // ---------------------------------------------------------------------------
 
-export async function getServices(filters?: ServiceFilters): Promise<ServiceWithProvider[]> {
-  // DB: return await prisma.service.findMany({ where: buildWhereClause(filters), include: { provider: true } });
+export async function getServices(
+  filters?: ServiceFilters
+): Promise<PaginatedResult<ServiceWithProvider>> {
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? 12; // 12 fits neatly in a 3-col grid
+
+  // ─── FUTURE PRISMA SWAP ──────────────────────────────────────────
+  // const where = { isActive: true, ...buildWhereClause(filters) };
+  // const [paginated, total] = await Promise.all([
+  //   prisma.service.findMany({
+  //     where,
+  //     include: { provider: true },
+  //     orderBy: { createdAt: 'desc' },
+  //     skip: (page - 1) * pageSize,
+  //     take: pageSize,
+  //   }),
+  //   prisma.service.count({ where }),
+  // ]);
+  // ────────────────────────────────────────────────────────────────
+
   let services = MOCK_SERVICES.filter((s) => s.isActive);
 
   if (filters?.category) {
@@ -66,7 +84,7 @@ export async function getServices(filters?: ServiceFilters): Promise<ServiceWith
     services = services.filter((s) => s.price <= filters.maxPrice!);
   }
   if (filters?.minRating !== undefined) {
-    services = services.filter((s) => s.rating >= filters.minRating!);
+    services = services.filter((s) => (s.rating ?? 0) >= filters.minRating!);
   }
   if (filters?.search) {
     const q = filters.search.toLowerCase();
@@ -79,7 +97,12 @@ export async function getServices(filters?: ServiceFilters): Promise<ServiceWith
     );
   }
 
-  return services.map((service) => {
+  // Count BEFORE slicing
+  const total = services.length;
+  const skip = (page - 1) * pageSize;
+  const paginated = services.slice(skip, skip + pageSize);
+
+  const items = paginated.map((service) => {
     const provider = MOCK_USERS.find((u) => u.id === service.providerId)!;
     return {
       ...service,
@@ -94,8 +117,15 @@ export async function getServices(filters?: ServiceFilters): Promise<ServiceWith
       },
     };
   });
-}
 
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  };
+}
 export async function getServiceById(serviceId: string): Promise<ServiceWithProvider | null> {
   const services = await getServices();
   return services.find((s) => s.id === serviceId) ?? null;
@@ -248,8 +278,29 @@ export async function getUnreadNotificationCount(userId: string): Promise<number
 // Job Requests (providers find client work)
 // ---------------------------------------------------------------------------
 
-export async function getJobRequests(filters?: JobRequestFilters): Promise<JobRequestWithClient[]> {
-  // DB: return await prisma.jobRequest.findMany({ where: { status: 'OPEN', ...buildWhereClause(filters) }, include: { client: true }, orderBy: { createdAt: 'desc' } });
+// src/lib/actions/job-requests.ts  (or wherever your function lives)
+
+export async function getJobRequests(
+  filters?: JobRequestFilters
+): Promise<PaginatedResult<JobRequestWithClient>> {
+  const page = filters?.page ?? 1;
+  const pageSize = filters?.pageSize ?? 10;
+
+  // ─── FUTURE PRISMA SWAP ──────────────────────────────────────────
+  // const where = { status: 'OPEN', ...buildWhereClause(filters) };
+  // const [paginated, total] = await Promise.all([
+  //   prisma.jobRequest.findMany({
+  //     where,
+  //     include: { client: true },
+  //     orderBy: { createdAt: 'desc' },
+  //     skip: (page - 1) * pageSize,
+  //     take: pageSize,
+  //   }),
+  //   prisma.jobRequest.count({ where }),
+  // ]);
+  // ────────────────────────────────────────────────────────────────
+
+  // MOCK IMPLEMENTATION (mirrors Prisma logic exactly)
   let requests = MOCK_JOB_REQUESTS.filter((r) => r.status === 'OPEN');
 
   if (filters?.category) {
@@ -272,23 +323,37 @@ export async function getJobRequests(filters?: JobRequestFilters): Promise<JobRe
     );
   }
 
-  return requests
-    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
-    .map((req) => {
-      const client = MOCK_USERS.find((u) => u.id === req.clientId)!;
-      return {
-        ...req,
-        client: {
-          id: client.id,
-          name: client.name,
-          avatar: client.avatar,
-          isVerified: client.isVerified,
-          location: client.location,
-        },
-      };
-    });
-}
+  const sorted = requests.sort(
+    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
+  );
 
+  // Count BEFORE slicing — this is what Prisma's count() mirrors
+  const total = sorted.length;
+  const skip = (page - 1) * pageSize;
+  const paginated = sorted.slice(skip, skip + pageSize);
+
+  const items = paginated.map((req) => {
+    const client = MOCK_USERS.find((u) => u.id === req.clientId)!;
+    return {
+      ...req,
+      client: {
+        id: client.id,
+        name: client.name,
+        avatar: client.avatar,
+        isVerified: client.isVerified,
+        location: client.location,
+      },
+    };
+  });
+
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  };
+}
 // ---------------------------------------------------------------------------
 // Conversations & Messages
 // ---------------------------------------------------------------------------
