@@ -35,11 +35,18 @@ export function timeAgo(dateString: string): string {
 export function bookingStatusLabel(status: BookingStatus): string {
   const labels: Record<BookingStatus, string> = {
     PENDING: 'Pending',
+    AWAITING_PAYMENT: 'Awaiting Payment',
     ESCROW_PAID: 'Escrow Held',
+    ESCROW_FUNDED: 'Escrow Funded',
     IN_PROGRESS: 'In Progress',
+    PARTIALLY_RELEASED: 'Partially Released',
     COMPLETED: 'Awaiting Release',
     RELEASED: 'Complete',
     DECLINED: 'Declined',
+    CANCELLED: 'Cancelled',
+    DISPUTED: 'Disputed',
+    REFUND_PENDING: 'Refund Pending',
+    REFUNDED: 'Refunded',
   };
   return labels[status];
 }
@@ -47,11 +54,18 @@ export function bookingStatusLabel(status: BookingStatus): string {
 export function bookingStatusColor(status: BookingStatus): string {
   const colors: Record<BookingStatus, string> = {
     PENDING: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    AWAITING_PAYMENT: 'bg-sky-50 text-sky-700 border-sky-200',
     ESCROW_PAID: 'bg-blue-50 text-blue-700 border-blue-200',
+    ESCROW_FUNDED: 'bg-blue-50 text-blue-700 border-blue-200',
     IN_PROGRESS: 'bg-orange-50 text-orange-700 border-orange-200',
+    PARTIALLY_RELEASED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     COMPLETED: 'bg-purple-50 text-purple-700 border-purple-200',
     RELEASED: 'bg-green-50 text-green-700 border-green-200',
     DECLINED: 'bg-red-50 text-red-700 border-red-200',
+    CANCELLED: 'bg-slate-50 text-slate-700 border-slate-200',
+    DISPUTED: 'bg-rose-50 text-rose-700 border-rose-200',
+    REFUND_PENDING: 'bg-amber-50 text-amber-700 border-amber-200',
+    REFUNDED: 'bg-teal-50 text-teal-700 border-teal-200',
   };
   return colors[status];
 }

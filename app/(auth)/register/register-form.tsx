@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { cn } from '@/src/lib/utils';
 import { useRegister } from '@/src/hooks/useAuth';
 import { CURRENCIES, NIGERIAN_STATES } from '@/src/lib/constants/currencies';
-import type { CurrencyCode, UserRole } from '@/src/lib/types';
+import type { CurrencyCode } from '@/src/lib/types';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
@@ -21,7 +21,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const roles: { value: UserRole; label: string; description: string; icon: typeof User }[] = [
+const roles: { value: FormValues['role']; label: string; description: string; icon: typeof User }[] = [
   { value: 'CLIENT', label: 'Client', description: 'I want to hire professionals', icon: User },
   { value: 'PROVIDER', label: 'Provider', description: 'I want to offer my services', icon: Briefcase },
 ];

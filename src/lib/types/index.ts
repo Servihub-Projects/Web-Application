@@ -1,4 +1,4 @@
-export type UserRole = 'CLIENT' | 'PROVIDER';
+export type UserRole = 'CLIENT' | 'PROVIDER' | 'ADMIN';
 
 // src/lib/types.ts  (add these alongside your existing types)
 
@@ -20,11 +20,18 @@ export interface PaginatedResult<T> {
 }
 export type BookingStatus =
   | 'PENDING'
+  | 'AWAITING_PAYMENT'
   | 'ESCROW_PAID'
+  | 'ESCROW_FUNDED'
   | 'IN_PROGRESS'
+  | 'PARTIALLY_RELEASED'
   | 'COMPLETED'
   | 'RELEASED'
-  | 'DECLINED';
+  | 'DECLINED'
+  | 'CANCELLED'
+  | 'DISPUTED'
+  | 'REFUND_PENDING'
+  | 'REFUNDED';
 
 export type ServiceCategory =
   | 'Electrical'

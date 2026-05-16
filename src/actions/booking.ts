@@ -1,8 +1,15 @@
 'use server';
 
 import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
 import { MOCK_BOOKINGS } from '@/src/lib/constants/mockData';
 import { getCurrentUser } from '@/src/lib/auth/auth';
+import {
+  acceptBookingForEscrow,
+  completeJobWorkflow,
+  declineBookingForEscrow,
+  isDatabaseConfigured,
+} from '@/src/lib/escrow/service';
 import type { CompleteJobResult } from '@/src/lib/types';
 
 const PLATFORM_FEE_RATE = 0.10;
@@ -15,6 +22,37 @@ export async function completeJobAction(bookingId: string): Promise<CompleteJobR
 
   const user = await getCurrentUser();
   if (!user) return { success: false, error: 'Not authenticated.' };
+
+  if (isDatabaseConfigured()) {
+    try {
+      const result = await completeJobWorkflow({
+        bookingId: parsed.data,
+        actorUserId: user.id,
+      });
+      revalidatePath('/dashboard', 'layout');
+      if (result.released && 'release' in result && result.release) {
+        const { release } = result;
+        return {
+          success: true,
+          escrowBreakdown: {
+            totalAmount: Number(release.amount),
+            upfrontPaid: 0,
+            completionRelease: Number(release.workerNetAmount),
+            platformFee: Number(release.platformFeeAmount),
+            providerReceives: Number(release.workerNetAmount),
+          },
+        };
+      }
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unable to complete this booking.',
+      };
+    }
+  }
 
   const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
   if (!booking) return { success: false, error: 'Booking not found.' };
@@ -64,6 +102,16 @@ export async function acceptBookingAction(bookingId: string): Promise<{ success:
   const user = await getCurrentUser();
   if (!user || user.role !== 'PROVIDER') return { success: false, error: 'Not authorised.' };
 
+  if (isDatabaseConfigured()) {
+    try {
+      await acceptBookingForEscrow({ bookingId: parsed.data, providerId: user.id });
+      revalidatePath('/dashboard', 'layout');
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unable to accept booking.' };
+    }
+  }
+
   const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
   if (!booking || booking.providerId !== user.id) return { success: false, error: 'Booking not found.' };
 
@@ -81,6 +129,16 @@ export async function declineBookingAction(bookingId: string): Promise<{ success
 
   const user = await getCurrentUser();
   if (!user || user.role !== 'PROVIDER') return { success: false, error: 'Not authorised.' };
+
+  if (isDatabaseConfigured()) {
+    try {
+      await declineBookingForEscrow({ bookingId: parsed.data, providerId: user.id });
+      revalidatePath('/dashboard', 'layout');
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unable to decline booking.' };
+    }
+  }
 
   const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
   if (!booking || booking.providerId !== user.id) return { success: false, error: 'Booking not found.' };
