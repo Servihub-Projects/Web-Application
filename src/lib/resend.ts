@@ -1,4 +1,14 @@
-// lib/resend.ts
-// import { Resend } from "resend";
+type SendEmailPayload = {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+};
 
-// export const resend = new Resend(process.env.RESEND_API_KEY);
+export const resend = {
+  emails: {
+    async send(_payload: SendEmailPayload) {
+      throw new Error('Email delivery is not configured. Add a real Resend client before enabling password reset emails.');
+    },
+  },
+};

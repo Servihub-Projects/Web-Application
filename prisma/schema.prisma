@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -199,27 +198,41 @@ model User {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
-  servicesProvided        Service[]
-  bookingsAsClient        Booking[]                  @relation("ClientBookings")
-  bookingsAsProvider      Booking[]                  @relation("ProviderBookings")
+  servicesProvided       Service[]
+  bookingsAsClient       Booking[]            @relation("ClientBookings")
+  bookingsAsProvider     Booking[]            @relation("ProviderBookings")
   jobRequests            JobRequest[]
-  messagesSent            Message[]                  @relation("SentMessages")
-  messagesReceived        Message[]                  @relation("ReceivedMessages")
-  passwordResetTokens PasswordResetToken[]
+  messagesSent           Message[]            @relation("SentMessages")
+  messagesReceived       Message[]            @relation("ReceivedMessages")
+  passwordResetTokens    PasswordResetToken[]
   notifications          Notification[]
   wallets                Wallet[]
   payoutAccounts         PayoutAccount[]
-  payouts                Payout[]        @relation("PayoutOwner")
-  payoutsRequested       Payout[]        @relation("PayoutRequester")
-  paymentIntentsStarted  PaymentIntent[] @relation("PaymentIntentInitiator")
-  escrowAccountsAsClient EscrowAccount[] @relation("EscrowClient")
-  escrowAccountsAsWorker EscrowAccount[] @relation("EscrowWorker")
-  escrowReleasesAsked    EscrowRelease[] @relation("EscrowReleaseRequester")
-  escrowReleasesApproved EscrowRelease[] @relation("EscrowReleaseApprover")
-  auditLogs              AuditLog[]      @relation("AuditActor")
+  payouts                Payout[]             @relation("PayoutOwner")
+  payoutsRequested       Payout[]             @relation("PayoutRequester")
+  paymentIntentsStarted  PaymentIntent[]      @relation("PaymentIntentInitiator")
+  escrowAccountsAsClient EscrowAccount[]      @relation("EscrowClient")
+  escrowAccountsAsWorker EscrowAccount[]      @relation("EscrowWorker")
+  escrowReleasesAsked    EscrowRelease[]      @relation("EscrowReleaseRequester")
+  escrowReleasesApproved EscrowRelease[]      @relation("EscrowReleaseApprover")
+  auditLogs              AuditLog[]           @relation("AuditActor")
 
   @@index([email])
   @@index([role])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, used])
+  @@index([expiresAt])
 }
 
 model Service {
@@ -675,4 +688,13 @@ model Message {
   @@index([senderId])
   @@index([receiverId])
   @@index([isRead])
+}
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  company   String?
+  useCase   String
+  createdAt DateTime @default(now())
 }
