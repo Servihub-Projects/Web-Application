@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/src/lib/auth/auth';
 import { getServices } from '@/src/lib/data';
 import ProviderGrid from '@/src/components/dashboard/client/provider-grid';
+import type { ServiceCategory } from '@/src/lib/types';
 
 // Price range index → min/max pairs (must match ProviderGrid's PRICE_RANGES)
 const PRICE_RANGES = [
@@ -11,6 +12,17 @@ const PRICE_RANGES = [
   { min: 50_000, max: 150_000 },
   { min: 150_000, max: undefined },
 ];
+
+const SERVICE_CATEGORIES: ServiceCategory[] = [
+  'Electrical', 'Plumbing', 'Carpentry', 'Painting', 'Masonry',
+  'Interior Design', 'Landscaping', 'Cleaning', 'Security', 'HVAC', 'Roofing', 'Tiling',
+];
+
+function parseCategory(value?: string): ServiceCategory | undefined {
+  return SERVICE_CATEGORIES.includes(value as ServiceCategory)
+    ? (value as ServiceCategory)
+    : undefined;
+}
 
 interface PageProps {
   searchParams: Promise<{
@@ -28,15 +40,19 @@ export default async function DiscoverPage({ searchParams }: PageProps) {
   if (!user) redirect('/login');
   if (user.role !== 'CLIENT') redirect('/dashboard');
 
-  const { page, category, location, priceRange, minRating, search } = await searchParams; // 👈
+  const { page, category, location, priceRange, minRating, search } = await searchParams;
 
-  const priceIndex = Math.min(Number(priceRange ?? 0), PRICE_RANGES.length - 1);
+  const rawPriceIndex = Number(priceRange ?? 0);
+  const priceIndex = Number.isInteger(rawPriceIndex)
+    ? Math.min(Math.max(rawPriceIndex, 0), PRICE_RANGES.length - 1)
+    : 0;
   const { min, max } = PRICE_RANGES[priceIndex];
+  const pageNumber = Math.max(Number(page) || 1, 1);
 
   const data = await getServices({
-    page: page ? Number(page) : 1,
+    page: pageNumber,
     pageSize: 12,
-    category: category as any,
+    category: parseCategory(category),
     location,
     minPrice: min,
     maxPrice: max,

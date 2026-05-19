@@ -13,7 +13,7 @@ import {
 } from '@/src/lib/utils';
 import { useCurrency } from '@/src/hooks/useCurrency';
 import EmptyState from '../shared/empty-state';
-import { acceptBookingAction, declineBookingAction } from '@/src/actions/booking';
+import { acceptBookingAction, completeJobAction, declineBookingAction } from '@/src/actions/booking';
 import type { BookingWithDetails, BookingStatus } from '@/src/lib/types';
 
 interface BookingQueueProps {
@@ -23,9 +23,9 @@ interface BookingQueueProps {
 const STATUS_FILTERS: { label: string; value: BookingStatus | 'ALL' }[] = [
   { label: 'All', value: 'ALL' },
   { label: 'Pending', value: 'PENDING' },
+  { label: 'Accepted', value: 'ACCEPTED' },
   { label: 'In Progress', value: 'IN_PROGRESS' },
-  { label: 'Awaiting Release', value: 'COMPLETED' },
-  { label: 'Complete', value: 'RELEASED' },
+  { label: 'Completed', value: 'COMPLETED' },
 ];
 
 export default function BookingQueue({ bookings: initial }: BookingQueueProps) {
@@ -42,7 +42,7 @@ export default function BookingQueue({ bookings: initial }: BookingQueueProps) {
       const result = await acceptBookingAction(id);
       if (result.success) {
         setBookings((prev) =>
-          prev.map((b) => (b.id === id ? { ...b, status: 'ESCROW_PAID' as BookingStatus } : b))
+          prev.map((b) => (b.id === id ? { ...b, status: 'ACCEPTED' as BookingStatus } : b))
         );
         toast.success('Booking accepted. Client notified.');
       } else {
@@ -59,6 +59,24 @@ export default function BookingQueue({ bookings: initial }: BookingQueueProps) {
           prev.map((b) => (b.id === id ? { ...b, status: 'DECLINED' as BookingStatus } : b))
         );
         toast.success('Booking declined.');
+      } else {
+        toast.error(result.error ?? 'Something went wrong.');
+      }
+    });
+  };
+
+  const handleComplete = (id: string) => {
+    startTransition(async () => {
+      const result = await completeJobAction(id);
+      if (result.success) {
+        setBookings((prev) =>
+          prev.map((b) =>
+            b.id === id
+              ? { ...b, status: 'COMPLETED' as BookingStatus, completionDate: new Date().toISOString() }
+              : b
+          )
+        );
+        toast.success('Booking marked complete.');
       } else {
         toast.error(result.error ?? 'Something went wrong.');
       }
@@ -139,24 +157,6 @@ export default function BookingQueue({ bookings: initial }: BookingQueueProps) {
                 </div>
               </div>
 
-              {/* Escrow info */}
-              {(booking.status === 'IN_PROGRESS' || booking.status === 'ESCROW_PAID') && (
-                <div className="mt-3 pt-3 border-t border-[var(--dash-border)] flex gap-4 text-xs text-[var(--dash-text-muted)]">
-                  <span>
-                    50% upfront:{' '}
-                    <span className={cn('font-medium', booking.upfrontPaid ? 'text-green-600' : 'text-[var(--dash-text)]')}>
-                      {booking.upfrontPaid ? `Paid (${format(booking.totalAmount * 0.5)})` : 'Pending'}
-                    </span>
-                  </span>
-                  <span>
-                    Platform fee:{' '}
-                    <span className="font-medium text-[var(--dash-text)]">
-                      {format(booking.platformFee)}
-                    </span>
-                  </span>
-                </div>
-              )}
-
               {/* Actions */}
               {booking.status === 'PENDING' && (
                 <div className="mt-4 flex gap-2">
@@ -175,6 +175,19 @@ export default function BookingQueue({ bookings: initial }: BookingQueueProps) {
                   >
                     <XCircle size={14} />
                     Decline
+                  </button>
+                </div>
+              )}
+
+              {(booking.status === 'ACCEPTED' || booking.status === 'IN_PROGRESS') && (
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => handleComplete(booking.id)}
+                    disabled={isPending}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/30 dark:hover:bg-green-950/50 transition-colors disabled:opacity-50"
+                  >
+                    <CheckCircle size={14} />
+                    Mark complete
                   </button>
                 </div>
               )}

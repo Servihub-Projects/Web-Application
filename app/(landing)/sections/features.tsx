@@ -6,9 +6,9 @@ const WHY = [
     icon: Shield,
     iconBg: "bg-orange-50",
     iconColor: "text-orange-500",
-    title: "Escrow protection on every job",
+    title: "Verified providers for every job",
     description:
-      "Your money is held by ServiHub until the work is done to your satisfaction. No completion — no payment. It's that simple.",
+      "Review credentials, ratings, past work, and location before you choose who enters your home or business.",
   },
   {
     icon: BadgeCheck,

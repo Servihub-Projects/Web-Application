@@ -7,7 +7,8 @@ type SendEmailPayload = {
 
 export const resend = {
   emails: {
-    async send(_payload: SendEmailPayload) {
+    async send(payload: SendEmailPayload) {
+      void payload;
       throw new Error('Email delivery is not configured. Add a real Resend client before enabling password reset emails.');
     },
   },

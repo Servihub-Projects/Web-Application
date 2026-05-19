@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   MessageSquare,
   Star,
-  DollarSign,
   XCircle,
   Info,
   X,
@@ -24,8 +23,7 @@ const typeConfig: Record<NotificationType, { icon: typeof Bell; color: string }>
   BOOKING_REQUEST:  { icon: BriefcaseBusiness, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30' },
   BOOKING_ACCEPTED: { icon: CheckCircle2,      color: 'text-green-600 bg-green-50 dark:bg-green-950/30' },
   BOOKING_DECLINED: { icon: XCircle,           color: 'text-red-500 bg-red-50 dark:bg-red-950/30' },
-  PAYMENT_RECEIVED: { icon: DollarSign,        color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30' },
-  PAYMENT_RELEASED: { icon: DollarSign,        color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30' },
+  BOOKING_COMPLETED:{ icon: CheckCircle2,      color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30' },
   NEW_MESSAGE:      { icon: MessageSquare,     color: 'text-orange-500 bg-orange-50 dark:bg-orange-950/30' },
   JOB_REVIEW:       { icon: Star,              color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' },
   SYSTEM:           { icon: Info,              color: 'text-gray-500 bg-gray-100 dark:bg-gray-800' },
@@ -53,7 +51,7 @@ export default function NotificationsView({ notifications: initial }: Notificati
       <div className="card flex flex-col items-center justify-center py-20 gap-3">
         <Bell size={32} className="text-[var(--dash-text-muted)] opacity-30" />
         <p className="text-sm font-medium text-[var(--dash-text)]">No notifications</p>
-        <p className="text-xs text-[var(--dash-text-muted)]">You're all caught up!</p>
+        <p className="text-xs text-[var(--dash-text-muted)]">You&apos;re all caught up!</p>
       </div>
     );
   }

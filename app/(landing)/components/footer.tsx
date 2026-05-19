@@ -102,7 +102,7 @@ export function Footer() {
               </li>
               <li>
                 <a href="#" className="hover:text-orange-400 transition-colors">
-                  How Payments Work
+                  Provider Resources
                 </a>
               </li>
               <li>

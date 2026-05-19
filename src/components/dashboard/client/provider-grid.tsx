@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useTransition } from 'react';
+import { useCallback, useEffect, useRef, useTransition } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import ProviderCard from './provider-card';
@@ -18,14 +18,6 @@ interface ProviderGridProps {
 const CATEGORIES: ServiceCategory[] = [
   'Electrical', 'Plumbing', 'Carpentry', 'Painting', 'Masonry',
   'Interior Design', 'Landscaping', 'Cleaning', 'Security', 'HVAC', 'Roofing', 'Tiling',
-];
-
-const PRICE_RANGES = [
-  { min: undefined, max: undefined },
-  { min: 0, max: 10_000 },
-  { min: 10_000, max: 50_000 },
-  { min: 50_000, max: 150_000 },
-  { min: 150_000, max: undefined },
 ];
 
 function getPageWindow(current: number, total: number): (number | '...')[] {
@@ -46,6 +38,7 @@ export default function ProviderGrid({ initialData }: ProviderGridProps) {
   const pathname = usePathname();
   const params = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const format = useCurrency((s) => s.format);
 
   const priceLabels = [
@@ -73,6 +66,12 @@ export default function ProviderGrid({ initialData }: ProviderGridProps) {
 
   const clearFilters = () => startTransition(() => router.push(pathname));
 
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, []);
+
   const hasFilters =
     params.get('search') ||
     params.get('category') ||
@@ -92,8 +91,8 @@ export default function ProviderGrid({ initialData }: ProviderGridProps) {
           defaultValue={params.get('search') ?? ''}
           onChange={(e) => {
             const val = e.target.value;
-            const timer = setTimeout(() => updateParams({ search: val }), 400);
-            return () => clearTimeout(timer);
+            if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+            searchTimerRef.current = setTimeout(() => updateParams({ search: val }), 350);
           }}
           className="input-field !pl-9"
         />

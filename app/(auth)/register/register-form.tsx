@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Briefcase, User } from 'lucide-react';
@@ -33,7 +33,7 @@ export default function RegisterForm() {
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
@@ -41,7 +41,7 @@ export default function RegisterForm() {
     defaultValues: { role: 'CLIENT', preferredCurrency: 'NGN' },
   });
 
-  const selectedRole = watch('role');
+  const selectedRole = useWatch({ control, name: 'role' });
 
   const onSubmit = (data: FormValues) => {
     authRegister(

@@ -46,11 +46,11 @@ export default async function AnalyticsPage() {
           accent="amber"
         />
         <MetricCard
-          label="Pending Payout"
-          value={formatPrice(metrics.pendingPayouts ?? 0, user.preferredCurrency)}
+          label="Completed Jobs"
+          value={metrics.completedJobs ?? 0}
           icon={Clock}
           accent="purple"
-          sub="Awaiting client release"
+          sub="Finished bookings"
         />
       </div>
 

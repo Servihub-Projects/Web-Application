@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { X, Loader2, BriefcaseBusiness } from 'lucide-react';
@@ -43,7 +43,7 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
@@ -51,7 +51,7 @@ export default function PostJobModal({ onClose, onSuccess }: PostJobModalProps) 
     defaultValues: { urgency: 'FLEXIBLE' },
   });
 
-  const urgency = watch('urgency');
+  const urgency = useWatch({ control, name: 'urgency' });
 
   const onSubmit = (data: FormValues) => {
     setError(null);

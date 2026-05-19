@@ -1,4 +1,4 @@
-import { Search, ShieldCheck, ThumbsUp } from "lucide-react";
+import { MessageSquare, Search, ThumbsUp } from "lucide-react";
 import SectionHeader, { SectionTag, Title, SubTitle } from "../components/section-header";
 
 const STEPS = [
@@ -10,18 +10,18 @@ const STEPS = [
       "Browse verified electricians, plumbers, carpenters, and more in Lagos, Abuja, Port Harcourt, Enugu, and across Nigeria.",
   },
   {
-    icon: ShieldCheck,
+    icon: MessageSquare,
     number: "02",
-    title: "Book and pay into escrow",
+    title: "Message and agree the scope",
     description:
-      "Your payment is held securely by ServiHub — not the provider. Funds don't move until you confirm the job is done right.",
+      "Share photos, confirm availability, and align on the work details before the provider arrives.",
   },
   {
     icon: ThumbsUp,
     number: "03",
-    title: "Job done — you release payment",
+    title: "Confirm the completed job",
     description:
-      "Satisfied? Confirm completion and funds are released to the provider. Not happy? Raise a dispute and our team steps in.",
+      "Mark the booking complete, leave a review, and keep the conversation history for future maintenance.",
   },
 ];
 
@@ -31,7 +31,7 @@ export default function HowItWorks() {
       <SectionHeader>
         <SectionTag color="blue" text="HOW IT WORKS" />
         <Title text="Simple. Secure. Sorted." />
-        <SubTitle text="From search to payment in three clear steps. No hidden fees, no guesswork, no risk." />
+        <SubTitle text="From search to completion in three clear steps. No guesswork, just reliable local help." />
       </SectionHeader>
 
       <div className="container mx-auto px-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -304,15 +304,13 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 export default function SettingsView({ user: initialUser }: { user: SessionUser }) {
   const router = useRouter();
   const [user, setUser] = useState(initialUser);
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(`sh_avatar_${initialUser.id}`);
+  });
   const [editOpen, setEditOpen] = useState(false);
   const [pwOpen, setPwOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(`sh_avatar_${user.id}`);
-    if (stored) setAvatarSrc(stored);
-  }, [user.id]);
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

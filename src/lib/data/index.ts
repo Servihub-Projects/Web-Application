@@ -2,12 +2,12 @@ import {
   MOCK_USERS,
   MOCK_SERVICES,
   MOCK_BOOKINGS,
-  MOCK_ESCROW_TRANSACTIONS,
   MOCK_NOTIFICATIONS,
   MOCK_JOB_REQUESTS,
   MOCK_CONVERSATIONS,
   MOCK_MESSAGES,
 } from '@/src/lib/constants/mockData';
+import { applyPlacementMetadata, rankServiceResults } from '@/src/lib/marketplace/placements';
 import type {
   User,
   ServiceWithProvider,
@@ -31,14 +31,19 @@ import type {
 
 export async function getUsers(): Promise<Omit<User, 'passwordHash'>[]> {
   // DB: return await prisma.user.findMany({ omit: { passwordHash: true } });
-  return MOCK_USERS.map(({ passwordHash: _, ...u }) => u);
+  return MOCK_USERS.map((user) => {
+    const { passwordHash, ...safeUser } = user;
+    void passwordHash;
+    return safeUser;
+  });
 }
 
 export async function getUserById(id: string): Promise<Omit<User, 'passwordHash'> | null> {
   // DB: return await prisma.user.findUnique({ where: { id }, omit: { passwordHash: true } });
   const user = MOCK_USERS.find((u) => u.id === id);
   if (!user) return null;
-  const { passwordHash: _, ...rest } = user;
+  const { passwordHash, ...rest } = user;
+  void passwordHash;
   return rest;
 }
 
@@ -98,12 +103,7 @@ export async function getServices(
     );
   }
 
-  // Count BEFORE slicing
-  const total = services.length;
-  const skip = (page - 1) * pageSize;
-  const paginated = services.slice(skip, skip + pageSize);
-
-  const items = paginated.map((service) => {
+  const ranked = rankServiceResults(services.map((service) => {
     const provider = MOCK_USERS.find((u) => u.id === service.providerId)!;
     return {
       ...service,
@@ -117,10 +117,14 @@ export async function getServices(
         isVerified: provider.isVerified,
       },
     };
-  });
+  }));
+
+  const total = ranked.length;
+  const skip = (page - 1) * pageSize;
+  const paginated = ranked.slice(skip, skip + pageSize);
 
   return {
-    items,
+    items: applyPlacementMetadata(paginated),
     total,
     page,
     pageSize,
@@ -223,34 +227,32 @@ export async function getDashboardMetrics(
   );
 
   if (role === 'CLIENT') {
-    let activeBookings = 0, totalSpent = 0, escrowBalance = 0, completedJobs = 0;
+    let activeBookings = 0, totalSpent = 0, completedJobs = 0;
 
     for (const b of userBookings) {
-      if (b.status === 'PENDING' || b.status === 'ESCROW_PAID' || b.status === 'IN_PROGRESS') activeBookings++;
-      if (b.status === 'COMPLETED' || b.status === 'RELEASED') { totalSpent += b.totalAmount; completedJobs++; }
-      if (b.status === 'IN_PROGRESS' || b.status === 'ESCROW_PAID') escrowBalance += b.escrowAmount;
+      if (b.status === 'PENDING' || b.status === 'ACCEPTED' || b.status === 'IN_PROGRESS') activeBookings++;
+      if (b.status === 'COMPLETED') { totalSpent += b.totalAmount; completedJobs++; }
     }
 
-    return { totalBookings: userBookings.length, activeBookings, totalSpent, completedJobs, escrowBalance };
+    return { totalBookings: userBookings.length, activeBookings, totalSpent, completedJobs };
   }
 
   // PROVIDER — single pass over the array
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  let activeBookings = 0, totalEarned = 0, pendingPayouts = 0, monthlyEarnings = 0, releasedCount = 0;
+  let activeBookings = 0, totalEarned = 0, monthlyEarnings = 0, completedJobs = 0;
 
   for (const b of userBookings) {
-    if (b.status === 'PENDING' || b.status === 'ESCROW_PAID' || b.status === 'IN_PROGRESS') activeBookings++;
-    if (b.status === 'RELEASED') {
+    if (b.status === 'PENDING' || b.status === 'ACCEPTED' || b.status === 'IN_PROGRESS') activeBookings++;
+    if (b.status === 'COMPLETED') {
       const net = b.totalAmount - b.platformFee;
       totalEarned += net;
-      releasedCount++;
+      completedJobs++;
       if (Date.parse(b.createdAt) > thirtyDaysAgo) monthlyEarnings += net;
     }
-    if (b.status === 'COMPLETED') pendingPayouts += b.totalAmount * 0.5 - b.platformFee;
   }
 
   const completionRate = userBookings.length > 0
-    ? Math.round((releasedCount / userBookings.length) * 100)
+    ? Math.round((completedJobs / userBookings.length) * 100)
     : 0;
 
   const provider = MOCK_USERS.find((u) => u.id === userId);
@@ -261,18 +263,9 @@ export async function getDashboardMetrics(
     totalEarned,
     averageRating: provider?.rating,
     completionRate,
-    pendingPayouts,
+    completedJobs,
     monthlyEarnings,
   };
-}
-
-// ---------------------------------------------------------------------------
-// Escrow
-// ---------------------------------------------------------------------------
-
-export async function getEscrowTransactions(bookingId: string) {
-  // DB: return await prisma.escrowTransaction.findMany({ where: { bookingId } });
-  return MOCK_ESCROW_TRANSACTIONS.filter((t) => t.bookingId === bookingId);
 }
 
 // ---------------------------------------------------------------------------

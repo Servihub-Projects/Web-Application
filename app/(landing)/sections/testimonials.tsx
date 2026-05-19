@@ -8,7 +8,7 @@ const TESTIMONIALS = [
     location: "Victoria Island, Lagos",
     service: "Electrical Rewiring",
     quote:
-      "Victor and his team rewired my entire 4-bedroom duplex in 7 days. Every socket, every light point — done cleanly with a NERC certificate on completion. I paid nothing until I was satisfied. Outstanding.",
+      "Victor and his team rewired my entire 4-bedroom duplex in 7 days. Every socket and light point was done cleanly, with a NERC certificate on completion. Outstanding.",
     rating: 5,
     gradient: "from-orange-400 to-orange-600",
   },
@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     location: "GRA, Enugu",
     service: "Perimeter Fence Construction",
     quote:
-      "Emeka built an 80-metre fence around my hotel annex in 10 days. Gate pillars perfectly aligned, plastering was clean. The escrow system meant I had zero risk from the first day on site.",
+      "Emeka built an 80-metre fence around my hotel annex in 10 days. Gate pillars were perfectly aligned, plastering was clean, and updates were easy to track.",
     rating: 5,
     gradient: "from-slate-500 to-slate-700",
   },
@@ -28,7 +28,7 @@ const TESTIMONIALS = [
     location: "Ikeja, Lagos",
     service: "Custom Kitchen Cabinets",
     quote:
-      "Emmanuel built 22 kitchen units for our showroom to exact specification. I paid into escrow and didn't release a kobo until I was fully satisfied. That's exactly how a platform should work.",
+      "Emmanuel built 22 kitchen units for our showroom to exact specification. The profile, messages, and reviews helped us choose with confidence.",
     rating: 5,
     gradient: "from-blue-400 to-blue-600",
   },

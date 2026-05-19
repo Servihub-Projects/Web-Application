@@ -19,7 +19,7 @@ function buildMonthlyData(bookings: BookingWithDetails[]) {
     const earned = bookings
       .filter(
         (b) =>
-          b.status === 'RELEASED' &&
+          b.status === 'COMPLETED' &&
           new Date(b.createdAt).getFullYear() === d.getFullYear() &&
           new Date(b.createdAt).getMonth() === d.getMonth()
       )

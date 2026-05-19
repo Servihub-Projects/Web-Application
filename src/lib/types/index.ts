@@ -1,37 +1,13 @@
 export type UserRole = 'CLIENT' | 'PROVIDER' | 'ADMIN';
 
-// src/lib/types.ts  (add these alongside your existing types)
-
-export interface JobRequestFilters {
-  category?: ServiceCategory;
-  location?: string;
-  urgency?: JobUrgency;
-  search?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export interface PaginatedResult<T> {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
 export type BookingStatus =
   | 'PENDING'
-  | 'AWAITING_PAYMENT'
-  | 'ESCROW_PAID'
-  | 'ESCROW_FUNDED'
+  | 'ACCEPTED'
   | 'IN_PROGRESS'
-  | 'PARTIALLY_RELEASED'
   | 'COMPLETED'
-  | 'RELEASED'
   | 'DECLINED'
   | 'CANCELLED'
-  | 'DISPUTED'
-  | 'REFUND_PENDING'
-  | 'REFUNDED';
+  | 'DISPUTED';
 
 export type ServiceCategory =
   | 'Electrical'
@@ -49,24 +25,55 @@ export type ServiceCategory =
 
 export type CurrencyCode = 'NGN' | 'USD' | 'GBP' | 'EUR' | 'GHS';
 
-export type EscrowTransactionType =
-  | 'DEPOSIT'
-  | 'UPFRONT_RELEASE'
-  | 'COMPLETION_RELEASE'
-  | 'PLATFORM_FEE'
-  | 'REFUND';
-
 export type NotificationType =
   | 'BOOKING_REQUEST'
   | 'BOOKING_ACCEPTED'
   | 'BOOKING_DECLINED'
-  | 'PAYMENT_RECEIVED'
-  | 'PAYMENT_RELEASED'
+  | 'BOOKING_COMPLETED'
   | 'NEW_MESSAGE'
   | 'JOB_REVIEW'
   | 'SYSTEM';
 
 export type JobUrgency = 'FLEXIBLE' | 'WITHIN_WEEK' | 'URGENT';
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface JobRequestFilters {
+  category?: ServiceCategory;
+  location?: string;
+  urgency?: JobUrgency;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ServiceFilters {
+  category?: ServiceCategory;
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  minRating?: number;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export type MarketplacePlacementKind = 'ORGANIC' | 'SPONSORED' | 'BOOSTED' | 'BANNER';
+
+export interface MarketplacePlacement {
+  kind: MarketplacePlacementKind;
+  slot: number;
+  source: 'organic' | 'promotion';
+  campaignId?: string;
+  trackingKey?: string;
+  priority?: number;
+}
 
 export interface User {
   id: string;
@@ -110,21 +117,9 @@ export interface Booking {
   status: BookingStatus;
   totalAmount: number;
   platformFee: number;
-  escrowAmount: number;
-  upfrontPaid: boolean;
-  completionPaid: boolean;
   description: string;
   startDate: string;
   completionDate?: string;
-  createdAt: string;
-}
-
-export interface EscrowTransaction {
-  id: string;
-  bookingId: string;
-  amount: number;
-  type: EscrowTransactionType;
-  status: 'PENDING' | 'COMPLETED' | 'FAILED';
   createdAt: string;
 }
 
@@ -194,13 +189,11 @@ export interface JobRequest {
 export interface DashboardMetrics {
   totalBookings: number;
   activeBookings: number;
+  completedJobs?: number;
   totalSpent?: number;
   totalEarned?: number;
   averageRating?: number;
   completionRate?: number;
-  pendingPayouts?: number;
-  escrowBalance?: number;
-  completedJobs?: number;
   monthlyEarnings?: number;
 }
 
@@ -219,17 +212,11 @@ export interface CompleteJobResult {
   success: boolean;
   error?: string;
   updatedBooking?: Booking;
-  escrowBreakdown?: {
-    totalAmount: number;
-    upfrontPaid: number;
-    completionRelease: number;
-    platformFee: number;
-    providerReceives: number;
-  };
 }
 
 export interface ServiceWithProvider extends Service {
   provider: Pick<User, 'id' | 'name' | 'avatar' | 'rating' | 'reviewCount' | 'location' | 'isVerified'>;
+  placement?: MarketplacePlacement;
 }
 
 export interface BookingWithDetails extends Booking {
@@ -245,21 +232,4 @@ export interface JobRequestWithClient extends JobRequest {
 export interface ConversationWithParticipants extends Conversation {
   otherUser: Pick<User, 'id' | 'name' | 'avatar' | 'role'>;
   messages: Message[];
-}
-
-export interface ServiceFilters {
-  category?: ServiceCategory;
-  location?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  minRating?: number;
-  search?: string;
-  page?: number;
-  pageSize?: number;
-}
-export interface JobRequestFilters {
-  category?: ServiceCategory;
-  location?: string;
-  urgency?: JobUrgency;
-  search?: string;
 }

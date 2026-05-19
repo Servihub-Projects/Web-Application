@@ -19,8 +19,8 @@ export default function ProviderCTA() {
               Find the right professional, first time
             </h3>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              Browse verified providers, compare profiles, and book with escrow
-              protection. Your money doesn&apos;t move until you&apos;re satisfied.
+              Browse verified providers, compare profiles, and coordinate the
+              job details in one place before work begins.
             </p>
             <ProtectedNavButton
               destination="/dashboard/discover"
@@ -43,8 +43,8 @@ export default function ProviderCTA() {
               Earn more with a platform that protects you
             </h3>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              Set your own rates. Get paid securely via escrow. Build your
-              reputation with verified reviews. No cold calling — clients come to
+              Set your own rates, manage bookings, and build your
+              reputation with verified reviews. No cold calling - clients come to
               you.
             </p>
             <ProtectedNavButton

@@ -23,18 +23,12 @@ enum CurrencyCode {
 
 enum BookingStatus {
   PENDING
-  AWAITING_PAYMENT
-  ESCROW_PAID
-  ESCROW_FUNDED
+  ACCEPTED
   IN_PROGRESS
-  PARTIALLY_RELEASED
   COMPLETED
-  RELEASED
   DECLINED
   CANCELLED
   DISPUTED
-  REFUND_PENDING
-  REFUNDED
 }
 
 enum PriceType {
@@ -54,120 +48,11 @@ enum JobUrgency {
   URGENT
 }
 
-enum PaymentProvider {
-  PAYSTACK
-}
-
-enum PaymentIntentStatus {
-  INITIALIZED
-  PENDING
-  SUCCEEDED
-  FAILED
-  CANCELLED
-  ABANDONED
-}
-
-enum EscrowStatus {
-  NOT_FUNDED
-  FUNDING_PENDING
-  FUNDED
-  PARTIALLY_RELEASED
-  RELEASE_PENDING
-  RELEASED
-  REFUND_PENDING
-  REFUNDED
-  DISPUTED
-  CANCELLED
-}
-
-enum EscrowMilestoneStatus {
-  PENDING
-  FUNDED
-  RELEASE_PENDING
-  PARTIALLY_RELEASED
-  RELEASED
-  REFUND_PENDING
-  REFUNDED
-  DISPUTED
-  CANCELLED
-}
-
-enum EscrowReleaseStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  CANCELLED
-}
-
-enum EscrowReleaseType {
-  PARTIAL
-  FULL
-  FINAL
-  ADMIN
-}
-
-enum EscrowLedgerEntryType {
-  DEPOSIT
-  RELEASE
-  PLATFORM_FEE
-  REFUND
-  ADJUSTMENT
-  DISPUTE_HOLD
-  DISPUTE_RELEASE
-}
-
-enum LedgerDirection {
-  CREDIT
-  DEBIT
-}
-
-enum WalletTransactionType {
-  ESCROW_RELEASE
-  PAYOUT_HOLD
-  PAYOUT_SENT
-  PAYOUT_FAILED_REVERSAL
-  ADMIN_ADJUSTMENT
-}
-
-enum WalletTransactionStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REVERSED
-}
-
-enum PayoutStatus {
-  REQUESTED
-  QUEUED
-  PROCESSING
-  SUCCEEDED
-  FAILED
-  REVERSED
-  CANCELLED
-}
-
-enum OutboxEventStatus {
-  PENDING
-  PROCESSING
-  PROCESSED
-  FAILED
-}
-
-enum WebhookEventStatus {
-  RECEIVED
-  PROCESSING
-  PROCESSED
-  FAILED
-  IGNORED
-}
-
 enum NotificationType {
   BOOKING_REQUEST
   BOOKING_ACCEPTED
   BOOKING_DECLINED
-  PAYMENT_RECEIVED
-  PAYMENT_RELEASED
+  BOOKING_COMPLETED
   NEW_MESSAGE
   JOB_REVIEW
   SYSTEM
@@ -178,6 +63,27 @@ enum MessageType {
   IMAGE
   FILE
   SYSTEM
+}
+
+enum PromotionPlacementType {
+  PROVIDER_CARD
+  SERVICE_LISTING
+  FEATURED_SLOT
+  BANNER_CARD
+}
+
+enum PromotionStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum PromotionEventType {
+  IMPRESSION
+  CLICK
+  CONVERSION
 }
 
 model User {
@@ -198,24 +104,18 @@ model User {
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
-  servicesProvided       Service[]
-  bookingsAsClient       Booking[]            @relation("ClientBookings")
-  bookingsAsProvider     Booking[]            @relation("ProviderBookings")
-  jobRequests            JobRequest[]
-  messagesSent           Message[]            @relation("SentMessages")
-  messagesReceived       Message[]            @relation("ReceivedMessages")
-  passwordResetTokens    PasswordResetToken[]
-  notifications          Notification[]
-  wallets                Wallet[]
-  payoutAccounts         PayoutAccount[]
-  payouts                Payout[]             @relation("PayoutOwner")
-  payoutsRequested       Payout[]             @relation("PayoutRequester")
-  paymentIntentsStarted  PaymentIntent[]      @relation("PaymentIntentInitiator")
-  escrowAccountsAsClient EscrowAccount[]      @relation("EscrowClient")
-  escrowAccountsAsWorker EscrowAccount[]      @relation("EscrowWorker")
-  escrowReleasesAsked    EscrowRelease[]      @relation("EscrowReleaseRequester")
-  escrowReleasesApproved EscrowRelease[]      @relation("EscrowReleaseApprover")
-  auditLogs              AuditLog[]           @relation("AuditActor")
+  servicesProvided          Service[]
+  bookingsAsClient          Booking[]            @relation("ClientBookings")
+  bookingsAsProvider        Booking[]            @relation("ProviderBookings")
+  jobRequests               JobRequest[]
+  messagesSent              Message[]            @relation("SentMessages")
+  messagesReceived          Message[]            @relation("ReceivedMessages")
+  passwordResetTokens       PasswordResetToken[]
+  notifications             Notification[]
+  auditLogs                 AuditLog[]           @relation("AuditActor")
+  promotionCampaigns        PromotionCampaign[]  @relation("ProviderPromotionCampaigns")
+  promotionEventsAsActor    PromotionEvent[]     @relation("PromotionEventActor")
+  promotionEventsAsProvider PromotionEvent[]     @relation("PromotionEventProvider")
 
   @@index([email])
   @@index([role])
@@ -251,8 +151,10 @@ model Service {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  provider User      @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  bookings Booking[]
+  provider           User                @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  bookings           Booking[]
+  promotionCampaigns PromotionCampaign[]
+  promotionEvents    PromotionEvent[]
 
   @@index([providerId])
   @@index([category])
@@ -267,10 +169,7 @@ model Booking {
   status          BookingStatus @default(PENDING)
   totalAmount     Decimal       @db.Decimal(14, 2)
   platformFee     Decimal       @db.Decimal(14, 2)
-  escrowAmount    Decimal       @default(0) @db.Decimal(14, 2)
   currency        CurrencyCode  @default(NGN)
-  upfrontPaid     Boolean       @default(false)
-  completionPaid  Boolean       @default(false)
   description     String
   startDate       DateTime
   completionDate  DateTime?
@@ -281,312 +180,16 @@ model Booking {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  service        Service             @relation(fields: [serviceId], references: [id])
-  client         User                @relation("ClientBookings", fields: [clientId], references: [id])
-  provider       User                @relation("ProviderBookings", fields: [providerId], references: [id])
-  escrowAccount  EscrowAccount?
-  milestones     EscrowMilestone[]
-  paymentIntents PaymentIntent[]
-  releases       EscrowRelease[]
-  ledgerEntries  EscrowLedgerEntry[]
-  conversations  Conversation[]
-  messages       Message[]
+  service       Service        @relation(fields: [serviceId], references: [id])
+  client        User           @relation("ClientBookings", fields: [clientId], references: [id])
+  provider      User           @relation("ProviderBookings", fields: [providerId], references: [id])
+  conversations Conversation[]
+  messages      Message[]
 
   @@index([clientId])
   @@index([providerId])
   @@index([status])
   @@index([createdAt])
-}
-
-model EscrowAccount {
-  id                String       @id @default(cuid())
-  bookingId         String       @unique
-  clientId          String
-  workerId          String
-  currency          CurrencyCode @default(NGN)
-  status            EscrowStatus @default(NOT_FUNDED)
-  fundedAmount      Decimal      @default(0) @db.Decimal(14, 2)
-  availableAmount   Decimal      @default(0) @db.Decimal(14, 2)
-  releasedAmount    Decimal      @default(0) @db.Decimal(14, 2)
-  refundedAmount    Decimal      @default(0) @db.Decimal(14, 2)
-  platformFeeAmount Decimal      @default(0) @db.Decimal(14, 2)
-  disputedAmount    Decimal      @default(0) @db.Decimal(14, 2)
-  version           Int          @default(0)
-  metadata          Json?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-
-  booking  Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  client   User                @relation("EscrowClient", fields: [clientId], references: [id])
-  worker   User                @relation("EscrowWorker", fields: [workerId], references: [id])
-  releases EscrowRelease[]
-  ledger   EscrowLedgerEntry[]
-
-  @@index([clientId])
-  @@index([workerId])
-  @@index([status])
-}
-
-model EscrowMilestone {
-  id              String                @id @default(cuid())
-  bookingId       String
-  sequence        Int
-  title           String
-  description     String?
-  amount          Decimal               @db.Decimal(14, 2)
-  availableAmount Decimal               @default(0) @db.Decimal(14, 2)
-  releasedAmount  Decimal               @default(0) @db.Decimal(14, 2)
-  refundedAmount  Decimal               @default(0) @db.Decimal(14, 2)
-  status          EscrowMilestoneStatus @default(PENDING)
-  dueAt           DateTime?
-  acceptedAt      DateTime?
-  completedAt     DateTime?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-
-  booking       Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  releases      EscrowRelease[]
-  ledgerEntries EscrowLedgerEntry[]
-
-  @@unique([bookingId, sequence])
-  @@index([bookingId, status])
-}
-
-model PaymentIntent {
-  id                  String              @id @default(cuid())
-  bookingId           String
-  initiatedById       String
-  provider            PaymentProvider     @default(PAYSTACK)
-  status              PaymentIntentStatus @default(INITIALIZED)
-  amount              Decimal             @db.Decimal(14, 2)
-  currency            CurrencyCode        @default(NGN)
-  providerReference   String?             @unique
-  providerAccessCode  String?
-  authorizationUrl    String?
-  idempotencyKey      String              @unique
-  rawProviderResponse Json?
-  failureReason       String?
-  paidAt              DateTime?
-  failedAt            DateTime?
-  expiresAt           DateTime?
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-
-  booking       Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  initiatedBy   User                @relation("PaymentIntentInitiator", fields: [initiatedById], references: [id])
-  ledgerEntries EscrowLedgerEntry[]
-
-  @@index([bookingId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model EscrowRelease {
-  id                String              @id @default(cuid())
-  escrowAccountId   String
-  bookingId         String
-  milestoneId       String?
-  requestedById     String
-  approvedById      String?
-  status            EscrowReleaseStatus @default(PENDING)
-  releaseType       EscrowReleaseType
-  amount            Decimal             @db.Decimal(14, 2)
-  platformFeeAmount Decimal             @default(0) @db.Decimal(14, 2)
-  workerNetAmount   Decimal             @db.Decimal(14, 2)
-  idempotencyKey    String              @unique
-  reason            String?
-  failureReason     String?
-  completedAt       DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-
-  escrowAccount EscrowAccount       @relation(fields: [escrowAccountId], references: [id], onDelete: Cascade)
-  booking       Booking             @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  milestone     EscrowMilestone?    @relation(fields: [milestoneId], references: [id])
-  requestedBy   User                @relation("EscrowReleaseRequester", fields: [requestedById], references: [id])
-  approvedBy    User?               @relation("EscrowReleaseApprover", fields: [approvedById], references: [id])
-  ledgerEntries EscrowLedgerEntry[]
-
-  @@index([bookingId, status])
-  @@index([escrowAccountId])
-  @@index([milestoneId])
-}
-
-model EscrowLedgerEntry {
-  id                  String                @id @default(cuid())
-  escrowAccountId     String
-  bookingId           String
-  milestoneId         String?
-  releaseId           String?
-  paymentIntentId     String?
-  walletTransactionId String?
-  type                EscrowLedgerEntryType
-  direction           LedgerDirection
-  amount              Decimal               @db.Decimal(14, 2)
-  currency            CurrencyCode          @default(NGN)
-  balanceAfter        Decimal               @db.Decimal(14, 2)
-  idempotencyKey      String                @unique
-  description         String?
-  metadata            Json?
-  createdById         String?
-  createdAt           DateTime              @default(now())
-
-  escrowAccount EscrowAccount      @relation(fields: [escrowAccountId], references: [id], onDelete: Cascade)
-  booking       Booking            @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  milestone     EscrowMilestone?   @relation(fields: [milestoneId], references: [id])
-  release       EscrowRelease?     @relation(fields: [releaseId], references: [id])
-  paymentIntent PaymentIntent?     @relation(fields: [paymentIntentId], references: [id])
-  walletEntry   WalletTransaction? @relation(fields: [walletTransactionId], references: [id])
-
-  @@index([escrowAccountId, createdAt])
-  @@index([bookingId])
-  @@index([type])
-}
-
-model Wallet {
-  id              String       @id @default(cuid())
-  userId          String
-  currency        CurrencyCode @default(NGN)
-  availableAmount Decimal      @default(0) @db.Decimal(14, 2)
-  pendingAmount   Decimal      @default(0) @db.Decimal(14, 2)
-  lifetimeEarned  Decimal      @default(0) @db.Decimal(14, 2)
-  version         Int          @default(0)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-
-  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions WalletTransaction[]
-  payouts      Payout[]
-
-  @@unique([userId, currency])
-  @@index([userId])
-}
-
-model WalletTransaction {
-  id             String                  @id @default(cuid())
-  walletId       String
-  type           WalletTransactionType
-  status         WalletTransactionStatus @default(COMPLETED)
-  direction      LedgerDirection
-  amount         Decimal                 @db.Decimal(14, 2)
-  currency       CurrencyCode            @default(NGN)
-  balanceAfter   Decimal                 @db.Decimal(14, 2)
-  idempotencyKey String                  @unique
-  reference      String?
-  metadata       Json?
-  createdAt      DateTime                @default(now())
-
-  wallet        Wallet              @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  escrowEntries EscrowLedgerEntry[]
-
-  @@index([walletId, createdAt])
-}
-
-model PayoutAccount {
-  id                    String          @id @default(cuid())
-  userId                String
-  provider              PaymentProvider @default(PAYSTACK)
-  currency              CurrencyCode    @default(NGN)
-  providerRecipientCode String          @unique
-  bankCode              String
-  bankName              String?
-  accountNumberLast4    String
-  accountName           String?
-  isDefault             Boolean         @default(false)
-  isActive              Boolean         @default(true)
-  metadata              Json?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payouts Payout[]
-
-  @@index([userId, isDefault])
-}
-
-model Payout {
-  id                   String          @id @default(cuid())
-  userId               String
-  walletId             String
-  payoutAccountId      String
-  requestedById        String
-  provider             PaymentProvider @default(PAYSTACK)
-  status               PayoutStatus    @default(REQUESTED)
-  amount               Decimal         @db.Decimal(14, 2)
-  currency             CurrencyCode    @default(NGN)
-  providerReference    String          @unique
-  providerTransferCode String?
-  idempotencyKey       String          @unique
-  retryCount           Int             @default(0)
-  nextRetryAt          DateTime?
-  failureReason        String?
-  completedAt          DateTime?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-
-  user          User            @relation("PayoutOwner", fields: [userId], references: [id], onDelete: Cascade)
-  wallet        Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  payoutAccount PayoutAccount   @relation(fields: [payoutAccountId], references: [id])
-  requestedBy   User            @relation("PayoutRequester", fields: [requestedById], references: [id])
-  attempts      PayoutAttempt[]
-
-  @@index([userId, status])
-  @@index([nextRetryAt])
-}
-
-model PayoutAttempt {
-  id                String       @id @default(cuid())
-  payoutId          String
-  status            PayoutStatus
-  providerReference String?
-  requestPayload    Json?
-  responsePayload   Json?
-  error             String?
-  attemptedAt       DateTime     @default(now())
-
-  payout Payout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
-
-  @@index([payoutId, attemptedAt])
-}
-
-model PaystackWebhookEvent {
-  id                String             @id @default(cuid())
-  event             String
-  providerReference String?
-  transferReference String?
-  idempotencyKey    String             @unique
-  signature         String?
-  payload           Json
-  status            WebhookEventStatus @default(RECEIVED)
-  processAttempts   Int                @default(0)
-  firstReceivedAt   DateTime           @default(now())
-  processedAt       DateTime?
-  lastError         String?
-
-  @@index([event])
-  @@index([providerReference])
-  @@index([transferReference])
-  @@index([status])
-}
-
-model OutboxEvent {
-  id             String            @id @default(cuid())
-  aggregateType  String
-  aggregateId    String
-  type           String
-  payload        Json
-  status         OutboxEventStatus @default(PENDING)
-  idempotencyKey String            @unique
-  attempts       Int               @default(0)
-  availableAt    DateTime          @default(now())
-  lockedAt       DateTime?
-  processedAt    DateTime?
-  lastError      String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-
-  @@index([status, availableAt])
-  @@index([aggregateType, aggregateId])
 }
 
 model AuditLog {
@@ -688,6 +291,54 @@ model Message {
   @@index([senderId])
   @@index([receiverId])
   @@index([isRead])
+}
+
+model PromotionCampaign {
+  id            String                 @id @default(cuid())
+  providerId    String?
+  serviceId     String?
+  placementType PromotionPlacementType
+  status        PromotionStatus        @default(DRAFT)
+  title         String
+  priority      Int                    @default(0)
+  budgetAmount  Decimal?               @db.Decimal(14, 2)
+  currency      CurrencyCode           @default(NGN)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  metadata      Json?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  provider User?            @relation("ProviderPromotionCampaigns", fields: [providerId], references: [id], onDelete: Cascade)
+  service  Service?         @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  events   PromotionEvent[]
+
+  @@index([status, placementType])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([startsAt, endsAt])
+}
+
+model PromotionEvent {
+  id           String             @id @default(cuid())
+  campaignId   String?
+  actorUserId  String?
+  providerId   String?
+  serviceId    String?
+  eventType    PromotionEventType
+  placementKey String
+  metadata     Json?
+  occurredAt   DateTime           @default(now())
+
+  campaign PromotionCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  actor    User?              @relation("PromotionEventActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  provider User?              @relation("PromotionEventProvider", fields: [providerId], references: [id], onDelete: Cascade)
+  service  Service?           @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId, eventType])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([occurredAt])
 }
 
 model Waitlist {

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { DollarSign, Briefcase, CheckCircle2, Star, TrendingUp, Clock, ShieldCheck, Users } from 'lucide-react';
+import { DollarSign, Briefcase, CheckCircle2, Star, TrendingUp, Clock, Users } from 'lucide-react';
 import { getCurrentUser } from '@/src/lib/auth/auth';
 import { getDashboardMetrics, getBookings } from '@/src/lib/data';
 import MetricCard from '@/src/components/dashboard/shared/metric-card';
@@ -60,14 +60,14 @@ export default async function DashboardPage() {
                 value={metrics.completedJobs ?? 0}
                 icon={CheckCircle2}
                 accent="blue"
-                sub="Finished &amp; released"
+                sub="Finished jobs"
               />
               <MetricCard
-                label="In Escrow"
-                value={formatPrice(metrics.escrowBalance ?? 0, user.preferredCurrency)}
-                icon={ShieldCheck}
+                label="Total Bookings"
+                value={metrics.totalBookings}
+                icon={Clock}
                 accent="purple"
-                sub="Funds held securely"
+                sub="All requests"
               />
             </>
           ) : (
@@ -205,17 +205,17 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Escrow/earnings summary */}
+          {/* Activity summary */}
           <div className="card p-5">
             <h2 className="text-sm font-semibold text-[var(--dash-text)] mb-3">
-              {isClient ? 'Escrow summary' : 'Payout summary'}
+              {isClient ? 'Activity summary' : 'Earnings summary'}
             </h2>
             {isClient ? (
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-[var(--dash-text-muted)]">Held in escrow</span>
+                  <span className="text-[var(--dash-text-muted)]">Active hires</span>
                   <span className="font-semibold text-[var(--dash-text)]">
-                    {formatPrice(metrics.escrowBalance ?? 0, user.preferredCurrency)}
+                    {metrics.activeBookings}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -224,13 +224,19 @@ export default async function DashboardPage() {
                     {formatPrice(metrics.totalSpent ?? 0, user.preferredCurrency)}
                   </span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-[var(--dash-text-muted)]">Completed jobs</span>
+                  <span className="font-semibold text-[var(--dash-text)]">
+                    {metrics.completedJobs ?? 0}
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-[var(--dash-text-muted)]">Pending release</span>
-                  <span className="font-semibold text-amber-500">
-                    {formatPrice(metrics.pendingPayouts ?? 0, user.preferredCurrency)}
+                  <span className="text-[var(--dash-text-muted)]">Completed jobs</span>
+                  <span className="font-semibold text-[var(--dash-text)]">
+                    {metrics.completedJobs ?? 0}
                   </span>
                 </div>
                 <div className="flex justify-between">

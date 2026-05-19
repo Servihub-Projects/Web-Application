@@ -3,14 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { MoreHorizontal, X, Settings } from 'lucide-react';
+import { MoreHorizontal, X, Settings, type LucideIcon } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 
 interface MobileNavProps {
   links: {
     label: string;
     href: string;
-    icon: any;
+    icon: LucideIcon;
     exact: boolean;
   }[];
   user: {
