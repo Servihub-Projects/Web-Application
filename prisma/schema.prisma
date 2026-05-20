@@ -87,22 +87,24 @@ enum PromotionEventType {
 }
 
 model User {
-  id                String       @id @default(cuid())
-  email             String       @unique
-  passwordHash      String
-  name              String
-  role              UserRole
-  avatar            String?
-  bio               String?
-  rating            Float?
-  reviewCount       Int          @default(0)
-  hourlyRate        Float?
-  skills            String[]
-  location          String?
-  preferredCurrency CurrencyCode @default(NGN)
-  isVerified        Boolean      @default(false)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  id                       String       @id @default(cuid())
+  email                    String       @unique
+  passwordHash             String
+  name                     String
+  role                     UserRole
+  avatar                   String?
+  bio                      String?
+  yearsOfExperience        Int?
+  rating                   Float?
+  reviewCount              Int          @default(0)
+  hourlyRate               Float?
+  skills                   String[]
+  location                 String?
+  preferredCurrency        CurrencyCode @default(NGN)
+  isVerified               Boolean      @default(false)
+  providerDetailsCompleted Boolean      @default(false)
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
 
   servicesProvided          Service[]
   bookingsAsClient          Booking[]            @relation("ClientBookings")

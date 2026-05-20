@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Search,
   Briefcase,
+  BriefcaseBusiness,
   BookOpen,
   BarChart2,
   MessageSquare,
@@ -40,6 +41,7 @@ const providerLinks = [
   { label: 'Bookings', href: '/dashboard/bookings', icon: BookOpen, exact: false },
   { label: 'Find Clients', href: '/dashboard/find-clients', icon: Users, exact: false },
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart2, exact: false },
+  { label: 'Service Profile', href: '/add-details', icon: BriefcaseBusiness, exact: false },
   { label: 'Messages', href: '/dashboard/messages', icon: MessageSquare, exact: false },
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell, exact: false },
 ];

@@ -83,6 +83,7 @@ export interface User {
   role: UserRole;
   avatar?: string;
   bio?: string;
+  yearsOfExperience?: number;
   rating?: number;
   reviewCount?: number;
   hourlyRate?: number;
@@ -90,6 +91,7 @@ export interface User {
   location?: string;
   preferredCurrency: CurrencyCode;
   isVerified: boolean;
+  providerDetailsCompleted?: boolean;
   createdAt: string;
 }
 
@@ -204,8 +206,12 @@ export interface SessionUser {
   role: UserRole;
   avatar?: string;
   bio?: string;
+  yearsOfExperience?: number;
+  hourlyRate?: number;
+  skills?: string[];
   preferredCurrency: CurrencyCode;
   location?: string;
+  providerDetailsCompleted?: boolean;
 }
 
 export interface CompleteJobResult {

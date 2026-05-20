@@ -25,7 +25,14 @@ export function useLogin() {
       try {
         const result = await useAuthStore.getState().login(email, password);
         if (!result.ok) setError(result.error);
-        else router.push(postLoginRedirectPath(searchParams.get('from')));
+        else {
+          const user = useAuthStore.getState().user;
+          const from = postLoginRedirectPath(searchParams.get('from'));
+          const needsProviderDetails =
+            user?.role === 'PROVIDER' && user.providerDetailsCompleted === false;
+
+          router.push(needsProviderDetails ? '/add-details' : from);
+        }
       } finally {
         setPending(false);
       }

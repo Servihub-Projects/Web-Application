@@ -16,7 +16,15 @@ const schema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   role: z.enum(['CLIENT', 'PROVIDER']),
   preferredCurrency: z.enum(['NGN', 'USD']),
-  location: z.string().optional(),
+  location: z.string().trim().optional(),
+}).superRefine((data, ctx) => {
+  if (data.role === 'PROVIDER' && !data.location) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Select your work location.',
+      path: ['location'],
+    });
+  }
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -157,7 +165,7 @@ export default function RegisterForm() {
         </div>
 
         <div>
-          <label htmlFor="location" className="label">Location <span className="text-gray-400 font-normal">(optional)</span></label>
+          <label htmlFor="location" className="label">Location</label>
           <select
             id="location"
             className="input-field text-sm"
@@ -168,6 +176,7 @@ export default function RegisterForm() {
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
+          {errors.location && <p className="mt-1 text-xs text-red-600">{errors.location.message}</p>}
         </div>
       </div>
 

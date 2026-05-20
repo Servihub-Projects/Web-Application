@@ -16,7 +16,15 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   role: z.enum(['CLIENT', 'PROVIDER']),
   preferredCurrency: z.enum(['NGN', 'USD', 'GBP', 'EUR', 'GHS']).default('NGN'),
-  location: z.string().optional(),
+  location: z.string().trim().optional(),
+}).superRefine((data, ctx) => {
+  if (data.role === 'PROVIDER' && !data.location) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Select your work location.',
+      path: ['location'],
+    });
+  }
 });
 
 export type ActionResult = { error: string } | { success: true };
@@ -47,7 +55,7 @@ export async function registerAction(formData: FormData): Promise<ActionResult> 
     password: formData.get('password'),
     role: formData.get('role') as UserRole,
     preferredCurrency: (formData.get('preferredCurrency') as CurrencyCode) ?? 'NGN',
-    location: formData.get('location') ?? undefined,
+    location: formData.get('location') || undefined,
   });
 
   if (!parsed.success) {
@@ -60,7 +68,7 @@ export async function registerAction(formData: FormData): Promise<ActionResult> 
     return { error: result.error };
   }
 
-  redirect('/dashboard');
+  redirect(parsed.data.role === 'PROVIDER' ? '/add-details' : '/dashboard');
 }
 
 export async function logoutAction(): Promise<void> {
