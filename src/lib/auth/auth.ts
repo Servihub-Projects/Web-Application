@@ -58,6 +58,7 @@ function toSessionUser(user: AuthUserRecord): SessionUser {
 async function getPrismaForAuth() {
   if (!process.env.DATABASE_URL) return null;
   const { prisma } = await import('@/src/lib/prisma');
+  console.log("prisma exists")
   return prisma;
 }
 
@@ -77,23 +78,24 @@ async function loginWithMockUser(email: string, password: string): Promise<Login
 }
 
 export async function login(email: string, password: string): Promise<LoginResult> {
-  const prisma = await getPrismaForAuth();
+  // const prisma = await getPrismaForAuth();
 
-  if (prisma) {
-    try {
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (user) {
-        const valid = await bcrypt.compare(password, user.passwordHash);
-        if (!valid) return { success: false, error: 'Invalid email or password.' };
+  // if (prisma) {
+  //   try {
+  //     const user = await prisma.user.findUnique({ where: { email } });
+  //     if (user) {
+  //       const valid = await bcrypt.compare(password, user.passwordHash);
+  //       if (!valid) return { success: false, error: 'Invalid email or password.' };
 
-        const session = toSessionUser(user);
-        await setSession(session);
-        return { success: true, user: session };
-      }
-    } catch {
-      return { success: false, error: 'Unable to sign in right now.' };
-    }
-  }
+  //       const session = toSessionUser(user);
+  //       await setSession(session);
+  //       return { success: true, user: session };
+  //     }
+  //   } catch (error) {
+  //     console.log(error)
+  //     return { success: false, error: 'Unable to sign in right now.' };
+  //   }
+  // }
 
   return loginWithMockUser(email, password);
 }
