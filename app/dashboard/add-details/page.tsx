@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default async function AddProviderDetailsPage() {
   const user = await getCurrentUser();
-  if (!user) redirect('/login?from=/add-details');
+  if (!user) redirect('/login?from=/dashboard/add-details');
   if (user.role !== 'PROVIDER') redirect('/dashboard');
 
   const [defaults, options] = await Promise.all([
@@ -27,18 +27,9 @@ export default async function AddProviderDetailsPage() {
   return (
     <main className="min-h-screen bg-[var(--dash-bg)] px-4 py-5 text-[var(--dash-text)] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <Image
-              src="/logo.png"
-              alt="ServiHub"
-              width={32}
-              height={32}
-              className="rounded-md dark:mix-blend-multiply"
-            />
-            <span className="text-sm font-semibold text-[var(--dash-text)]">ServiHub</span>
-          </div>
-          <div className="hidden items-center gap-2 rounded-full border border-[var(--dash-border)] bg-[var(--dash-card)] px-3 py-1.5 text-xs font-medium text-[var(--dash-text-muted)] sm:inline-flex">
+        <div className="flex items-center gap-4">
+
+          <div className=" ml-auto hidden items-center gap-2 rounded-full border border-[var(--dash-border)] bg-[var(--dash-card)] px-3 py-1.5 text-xs font-medium text-[var(--dash-text-muted)] sm:inline-flex">
             <BriefcaseBusiness size={14} className="text-orange-500" />
             Provider setup
           </div>
