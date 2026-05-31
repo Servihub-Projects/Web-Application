@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { BookOpen, CheckCircle, XCircle } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock3, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   cn,
@@ -13,7 +13,12 @@ import {
 } from '@/src/lib/utils';
 import { useCurrency } from '@/src/hooks/useCurrency';
 import EmptyState from '../shared/empty-state';
-import { acceptBookingAction, completeJobAction, declineBookingAction } from '@/src/actions/booking';
+import {
+  acceptBookingAction,
+  cancelBookingAction,
+  completeJobAction,
+  declineBookingAction,
+} from '@/src/actions/booking';
 import type { BookingWithDetails, BookingStatus } from '@/src/lib/types';
 
 interface BookingQueueProps {
@@ -22,6 +27,7 @@ interface BookingQueueProps {
 
 const STATUS_FILTERS: { label: string; value: BookingStatus | 'ALL' }[] = [
   { label: 'All', value: 'ALL' },
+  { label: 'Proposals', value: 'PROPOSAL_SENT' },
   { label: 'Pending', value: 'PENDING' },
   { label: 'Accepted', value: 'ACCEPTED' },
   { label: 'In Progress', value: 'IN_PROGRESS' },
@@ -77,6 +83,20 @@ export default function BookingQueue({ bookings: initial }: BookingQueueProps) {
           )
         );
         toast.success('Booking marked complete.');
+      } else {
+        toast.error(result.error ?? 'Something went wrong.');
+      }
+    });
+  };
+
+  const handleWithdraw = (id: string) => {
+    startTransition(async () => {
+      const result = await cancelBookingAction(id);
+      if (result.success) {
+        setBookings((prev) =>
+          prev.map((b) => (b.id === id ? { ...b, status: 'CANCELLED' as BookingStatus } : b))
+        );
+        toast.success('Proposal withdrawn.');
       } else {
         toast.error(result.error ?? 'Something went wrong.');
       }
@@ -188,6 +208,24 @@ export default function BookingQueue({ bookings: initial }: BookingQueueProps) {
                   >
                     <CheckCircle size={14} />
                     Mark complete
+                  </button>
+                </div>
+              )}
+
+              {/* Proposals you sent to clients — awaiting their decision. */}
+              {booking.status === 'PROPOSAL_SENT' && (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--dash-border)] pt-3">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-[var(--dash-text-muted)]">
+                    <Clock3 size={13} />
+                    Awaiting client response
+                  </span>
+                  <button
+                    onClick={() => handleWithdraw(booking.id)}
+                    disabled={isPending}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-950/50 transition-colors disabled:opacity-50"
+                  >
+                    <XCircle size={14} />
+                    Withdraw
                   </button>
                 </div>
               )}

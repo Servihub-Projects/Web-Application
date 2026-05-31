@@ -11,9 +11,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login');
   }
 
-  if (user.role === 'PROVIDER' && user.providerDetailsCompleted === false) {
-    redirect('/add-details');
-  }
+  // NOTE: The provider-onboarding gate (redirecting incomplete providers to
+  // /dashboard/add-details) is handled exclusively in middleware (proxy.ts).
+  // It must NOT be duplicated here: the add-details page is a child of this
+  // layout, so redirecting from the layout would re-trigger the layout on the
+  // target route and loop forever. Middleware can see the pathname and exempt
+  // the setup page; this layout cannot.
 
   const notifications = await getNotifications(user.id);
 

@@ -1,13 +1,17 @@
 export type UserRole = 'CLIENT' | 'PROVIDER' | 'ADMIN';
 
 export type BookingStatus =
-  | 'PENDING'
+  | 'PROPOSAL_SENT' // provider → client: awaiting the client's review of a proposal
+  | 'PENDING' // client → provider: hire request awaiting the provider's response
   | 'ACCEPTED'
   | 'IN_PROGRESS'
   | 'COMPLETED'
-  | 'DECLINED'
+  | 'DECLINED' // provider declined a hire request, or client rejected a proposal
   | 'CANCELLED'
   | 'DISPUTED';
+
+/** Who initiated the booking — determines which side acts next while it is open. */
+export type BookingInitiator = 'CLIENT' | 'PROVIDER';
 
 export type ServiceCategory =
   | 'Electrical'
@@ -117,11 +121,18 @@ export interface Booking {
   clientId: string;
   providerId: string;
   status: BookingStatus;
+  /** Which side opened the booking. Drives whose action is pending while open. */
+  initiatedBy: BookingInitiator;
   totalAmount: number;
   platformFee: number;
   description: string;
+  /** Provider's pitch when this booking originated as a proposal to a job request. */
+  proposalMessage?: string;
+  /** Set when a proposal is sent in response to a client's job request. */
+  jobRequestId?: string;
   startDate: string;
   completionDate?: string;
+  cancelledAt?: string;
   createdAt: string;
 }
 
@@ -229,7 +240,13 @@ export interface BookingWithDetails extends Booking {
   service: Pick<Service, 'id' | 'title' | 'category'>;
   client?: Pick<User, 'id' | 'name' | 'avatar'>;
   provider?: Pick<User, 'id' | 'name' | 'avatar' | 'rating'>;
+  /** Title of the originating job request, when this booking is a proposal. */
+  jobRequestTitle?: string;
 }
+
+export type BookingActionResult =
+  | { success: true; bookingId: string }
+  | { success: false; error: string };
 
 export interface JobRequestWithClient extends JobRequest {
   client: Pick<User, 'id' | 'name' | 'avatar' | 'isVerified' | 'location'>;

@@ -2,12 +2,13 @@
 'use client';
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useCallback, useTransition } from 'react';
-import { Search, MapPin, Clock, SlidersHorizontal, X, Users } from 'lucide-react';
+import { useCallback, useState, useTransition } from 'react';
+import { Search, MapPin, Clock, SlidersHorizontal, X, Users, Check } from 'lucide-react';
 import { cn, timeAgo, initials } from '@/src/lib/utils';
 import { useCurrency } from '@/src/hooks/useCurrency';
 import { NIGERIAN_STATES } from '@/src/lib/constants/currencies';
 import EmptyState from '../shared/empty-state';
+import SendProposalModal from './send-proposal-modal';
 import type { JobRequestWithClient, ServiceCategory, JobUrgency, PaginatedResult } from '@/src/lib/types';
 
 interface ClientDirectoryProps {
@@ -45,6 +46,15 @@ export default function ClientDirectory({ initialData }: ClientDirectoryProps) {
   const params = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const format = useCurrency((s) => s.format);
+
+  // Track jobs the provider has just sent a proposal for so the button reflects
+  // it immediately (the server also blocks duplicates on the next navigation).
+  const [activeJob, setActiveJob] = useState<JobRequestWithClient | null>(null);
+  const [sentJobIds, setSentJobIds] = useState<Set<string>>(new Set());
+
+  const markProposalSent = useCallback((jobId: string) => {
+    setSentJobIds((prev) => new Set(prev).add(jobId));
+  }, []);
 
   // Generic helper — updates one or more URL params and navigates
   const updateParams = useCallback(
@@ -192,7 +202,20 @@ export default function ClientDirectory({ initialData }: ClientDirectoryProps) {
                   </div>
                 </div>
                 <div className="mt-4 pt-3 border-t border-[var(--dash-border)] flex justify-end">
-                  <button className="btn-primary text-sm px-5 py-2">Send Proposal</button>
+                  {sentJobIds.has(req.id) ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-50 px-4 py-2 text-sm font-medium text-green-700 dark:bg-green-950/30">
+                      <Check size={15} />
+                      Proposal sent
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setActiveJob(req)}
+                      className="btn-primary text-sm px-5 py-2"
+                    >
+                      Send Proposal
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -245,6 +268,14 @@ export default function ClientDirectory({ initialData }: ClientDirectoryProps) {
         <p className="text-center text-xs text-[var(--dash-text-muted)]">
           Page {page} of {totalPages} · {total} total results
         </p>
+      )}
+
+      {activeJob && (
+        <SendProposalModal
+          job={activeJob}
+          onClose={() => setActiveJob(null)}
+          onSent={markProposalSent}
+        />
       )}
     </div>
   );

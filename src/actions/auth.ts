@@ -68,7 +68,7 @@ export async function registerAction(formData: FormData): Promise<ActionResult> 
     return { error: result.error };
   }
 
-  redirect(parsed.data.role === 'PROVIDER' ? '/add-details' : '/dashboard');
+  redirect(parsed.data.role === 'PROVIDER' ? '/dashboard/add-details' : '/dashboard');
 }
 
 export async function logoutAction(): Promise<void> {

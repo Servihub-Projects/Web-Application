@@ -251,6 +251,6 @@ export async function updateProviderDetailsAction(
 
   revalidatePath('/dashboard', 'layout');
   revalidatePath('/dashboard/discover');
-  revalidatePath('/add-details');
+  revalidatePath('/dashboard/add-details');
   return { success: true };
 }
