@@ -27,3 +27,16 @@ export async function clearSession(): Promise<void> {
   const store = await cookies();
   store.delete(SESSION_COOKIE_NAME);
 }
+
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export async function getAllUsers(): Promise<SessionUser[]> {
+  const users = await prisma.user.findMany();
+  return users.map(user => ({
+    id: user.id,
+    email: user.email,
+    name: user.name
+  }));
+}

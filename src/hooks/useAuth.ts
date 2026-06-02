@@ -31,7 +31,7 @@ export function useLogin() {
           const needsProviderDetails =
             user?.role === 'PROVIDER' && user.providerDetailsCompleted === false;
 
-          router.push(needsProviderDetails ? '/add-details' : from);
+          router.push(needsProviderDetails ? '/dashboard/add-details' : from);
         }
       } finally {
         setPending(false);

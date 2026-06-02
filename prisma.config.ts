@@ -1,8 +1,5 @@
 import 'dotenv/config';
-import { defineConfig } from 'prisma/config';
-
-const databaseUrl =
-  process.env.DATABASE_URL ?? 'postgresql://user:password@localhost:5432/servihub';
+import { defineConfig, env } from 'prisma/config';
 
 export default defineConfig({
   schema: './prisma/schema.prisma',
@@ -10,6 +7,7 @@ export default defineConfig({
     path: './prisma/migrations',
   },
   datasource: {
-    url: databaseUrl,
+    url: env('DATABASE_URL'),
+    shadowDatabaseUrl: env('SHADOW_DATABASE_URL'),
   },
 });

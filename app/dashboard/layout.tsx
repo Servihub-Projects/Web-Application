@@ -12,7 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   if (user.role === 'PROVIDER' && user.providerDetailsCompleted === false) {
-    redirect('/add-details');
+    redirect('/dashboard/add-details');
   }
 
   const notifications = await getNotifications(user.id);

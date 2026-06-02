@@ -3,8 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { getCurrentUser } from '@/src/lib/auth/auth';
-import { MOCK_JOB_REQUESTS } from '@/src/lib/constants/mockData';
-import type { JobRequest, ServiceCategory, JobUrgency } from '@/src/lib/types';
+import { prisma } from '@/src/lib/prisma';
 
 export type JobActionResult = { error: string } | { success: true };
 
@@ -55,22 +54,24 @@ export async function createJobAction(formData: FormData): Promise<JobActionResu
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
 
-  const job: JobRequest = {
-    id: `job_${Date.now()}`,
-    clientId: user.id,
-    title: parsed.data.title,
-    description: parsed.data.description,
-    category: parsed.data.category as ServiceCategory,
-    budgetMin: parsed.data.budgetMin ?? 0,
-    budgetMax: parsed.data.budgetMax ?? 0,
-    location: parsed.data.location,
-    urgency: parsed.data.urgency as JobUrgency,
-    status: 'OPEN',
-    createdAt: new Date().toISOString(),
-  };
+  try {
+    await prisma.jobRequest.create({
+      data: {
+        clientId: user.id,
+        title: parsed.data.title,
+        description: parsed.data.description,
+        category: parsed.data.category,
+        budgetMin: parsed.data.budgetMin ?? 0,
+        budgetMax: parsed.data.budgetMax ?? 0,
+        location: parsed.data.location,
+        urgency: parsed.data.urgency,
+        status: 'OPEN',
+      },
+    });
+  } catch {
+    return { error: 'Failed to create job. Please try again.' };
+  }
 
-  // In production: await prisma.jobRequest.create({ data: job });
-  MOCK_JOB_REQUESTS.push(job);
   revalidatePath('/dashboard/jobs');
   return { success: true };
 }
@@ -82,11 +83,20 @@ export async function closeJobAction(jobId: string): Promise<JobActionResult> {
   const user = await getCurrentUser();
   if (!user) return { error: 'Not authenticated.' };
 
-  const job = MOCK_JOB_REQUESTS.find((j) => j.id === parsed.data && j.clientId === user.id);
+  const job = await prisma.jobRequest.findFirst({
+    where: { id: parsed.data, clientId: user.id },
+  });
   if (!job) return { error: 'Job not found.' };
 
-  // In production: await prisma.jobRequest.update({ where: { id: jobId }, data: { status: 'CLOSED' } });
-  job.status = 'CLOSED';
+  try {
+    await prisma.jobRequest.update({
+      where: { id: parsed.data },
+      data: { status: 'CLOSED' },
+    });
+  } catch {
+    return { error: 'Failed to close job. Please try again.' };
+  }
+
   revalidatePath('/dashboard/jobs');
   return { success: true };
 }
@@ -98,10 +108,20 @@ export async function reopenJobAction(jobId: string): Promise<JobActionResult> {
   const user = await getCurrentUser();
   if (!user) return { error: 'Not authenticated.' };
 
-  const job = MOCK_JOB_REQUESTS.find((j) => j.id === parsed.data && j.clientId === user.id);
+  const job = await prisma.jobRequest.findFirst({
+    where: { id: parsed.data, clientId: user.id },
+  });
   if (!job) return { error: 'Job not found.' };
 
-  job.status = 'OPEN';
+  try {
+    await prisma.jobRequest.update({
+      where: { id: parsed.data },
+      data: { status: 'OPEN' },
+    });
+  } catch {
+    return { error: 'Failed to reopen job. Please try again.' };
+  }
+
   revalidatePath('/dashboard/jobs');
   return { success: true };
 }
@@ -113,11 +133,19 @@ export async function deleteJobAction(jobId: string): Promise<JobActionResult> {
   const user = await getCurrentUser();
   if (!user) return { error: 'Not authenticated.' };
 
-  const idx = MOCK_JOB_REQUESTS.findIndex((j) => j.id === parsed.data && j.clientId === user.id);
-  if (idx === -1) return { error: 'Job not found.' };
+  const job = await prisma.jobRequest.findFirst({
+    where: { id: parsed.data, clientId: user.id },
+  });
+  if (!job) return { error: 'Job not found.' };
 
-  // In production: await prisma.jobRequest.delete({ where: { id: jobId } });
-  MOCK_JOB_REQUESTS.splice(idx, 1);
+  try {
+    await prisma.jobRequest.delete({
+      where: { id: parsed.data },
+    });
+  } catch {
+    return { error: 'Failed to delete job. Please try again.' };
+  }
+
   revalidatePath('/dashboard/jobs');
   return { success: true };
 }

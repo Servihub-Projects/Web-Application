@@ -277,8 +277,7 @@ export default function AddProviderDetailsForm({
         return;
       }
 
-      router.push('/dashboard');
-      router.refresh();
+
     });
   };
 

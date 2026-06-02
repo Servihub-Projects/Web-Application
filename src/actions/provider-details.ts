@@ -3,13 +3,16 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getCurrentUser } from '@/src/lib/auth/auth';
-import { setSession } from '@/src/lib/auth/session';
+import { SESSION_COOKIE_NAME, setSession } from '@/src/lib/auth/session';
 import { MOCK_SERVICES, MOCK_USERS } from '@/src/lib/constants/mockData';
 import {
   PRICE_TYPES,
   SERVICE_CATEGORIES,
 } from '@/src/lib/provider-details';
 import type { ServiceCategory } from '@/src/lib/types';
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { parseSessionTokenEdge } from '../lib/auth/session-token-edge';
 
 export type ProviderDetailsActionResult = { error: string } | { success: true };
 
@@ -205,7 +208,6 @@ export async function updateProviderDetailsAction(
   const user = await getCurrentUser();
   if (!user) return { error: 'Not authenticated.' };
   if (user.role !== 'PROVIDER') return { error: 'Only providers can update professional details.' };
-
   const parsed = providerDetailsSchema.safeParse({
     bio: formData.get('bio'),
     yearsOfExperience: formData.get('yearsOfExperience'),
@@ -220,16 +222,12 @@ export async function updateProviderDetailsAction(
     deliveryTime: formData.get('deliveryTime'),
     tags: getFormList(formData, 'tags'),
   });
-
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input.' };
   }
-
   const data = parsed.data;
   const tags = data.tags.length > 0 ? data.tags : data.skills;
-
   if (tags.length === 0) return { error: 'Add at least one search tag.' };
-
   try {
     const savedToDatabase = await persistProviderDetailsToDatabase(user.id, data, tags);
     if (!savedToDatabase) {
@@ -239,8 +237,11 @@ export async function updateProviderDetailsAction(
     return { error: 'We could not save your provider details. Please try again.' };
   }
 
+  const store = await cookies();
+  const raw = store.get(SESSION_COOKIE_NAME)?.value;
+  const freshUser = raw ? await parseSessionTokenEdge(raw) : user;
   await setSession({
-    ...user,
+    ...freshUser,
     bio: data.bio,
     yearsOfExperience: data.yearsOfExperience,
     hourlyRate: data.hourlyRate,
@@ -251,6 +252,6 @@ export async function updateProviderDetailsAction(
 
   revalidatePath('/dashboard', 'layout');
   revalidatePath('/dashboard/discover');
-  revalidatePath('/add-details');
-  return { success: true };
+  revalidatePath('/dashboard/add-details');
+  redirect('/dashboard');
 }

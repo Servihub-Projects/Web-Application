@@ -27,6 +27,7 @@ const registerSchema = z.object({
   }
 });
 
+
 export type ActionResult = { error: string } | { success: true };
 
 export async function loginAction(formData: FormData): Promise<ActionResult> {
@@ -68,7 +69,7 @@ export async function registerAction(formData: FormData): Promise<ActionResult> 
     return { error: result.error };
   }
 
-  redirect(parsed.data.role === 'PROVIDER' ? '/add-details' : '/dashboard');
+  redirect(parsed.data.role === 'PROVIDER' ? '/dashboard/add-details' : '/dashboard');
 }
 
 export async function logoutAction(): Promise<void> {

@@ -4,18 +4,19 @@ import { SESSION_COOKIE_NAME } from '@/src/lib/auth/session-constants';
 import { parseSessionTokenEdge } from '@/src/lib/auth/session-token-edge';
 
 const AUTH_ONLY_PREFIXES = ['/login', '/register'] as const;
-const PROVIDER_DETAILS_PATH = '/add-details';
+const PROVIDER_DETAILS_PATH = '/dashboard/add-details';
 
 export async function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const raw = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   const user = raw ? await parseSessionTokenEdge(raw) : null;
-
-  const isProviderDetailsPage = pathname === PROVIDER_DETAILS_PATH;
+  const isProviderDetailsPage =
+    pathname === PROVIDER_DETAILS_PATH ||
+    pathname === `${PROVIDER_DETAILS_PATH}/`;
   const isProtected = pathname.startsWith('/dashboard') || isProviderDetailsPage;
   const isAuthPage = AUTH_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
   const needsProviderDetails =
-    user?.role === 'PROVIDER' && user.providerDetailsCompleted === false;
+    user?.role === 'PROVIDER' && !user.providerDetailsCompleted;
 
   if (isProtected && !user) {
     const url = req.nextUrl.clone();
@@ -39,7 +40,6 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/dashboard/add-details',
     '/dashboard',
     '/dashboard/:path*',
     '/login',

@@ -23,7 +23,10 @@ import type {
   ConversationWithParticipants,
   Message,
   PaginatedResult,
+  ServiceCategory,
+  JobUrgency,
 } from '@/src/lib/types';
+import { prisma } from '../prisma';
 
 // ---------------------------------------------------------------------------
 // Users
@@ -296,68 +299,59 @@ export async function getJobRequests(
   const page = filters?.page ?? 1;
   const pageSize = filters?.pageSize ?? 10;
 
-  // ─── FUTURE PRISMA SWAP ──────────────────────────────────────────
-  // const where = { status: 'OPEN', ...buildWhereClause(filters) };
-  // const [paginated, total] = await Promise.all([
-  //   prisma.jobRequest.findMany({
-  //     where,
-  //     include: { client: true },
-  //     orderBy: { createdAt: 'desc' },
-  //     skip: (page - 1) * pageSize,
-  //     take: pageSize,
-  //   }),
-  //   prisma.jobRequest.count({ where }),
-  // ]);
-  // ────────────────────────────────────────────────────────────────
+  const where = {
+    status: 'OPEN' as const,
+    ...(filters?.category && { category: filters.category }),
+    ...(filters?.urgency && { urgency: filters.urgency }),
+    ...(filters?.location && {
+      location: { contains: filters.location, mode: 'insensitive' as const },
+    }),
+    ...(filters?.search && {
+      OR: [
+        { title: { contains: filters.search, mode: 'insensitive' as const } },
+        { description: { contains: filters.search, mode: 'insensitive' as const } },
+        { category: { contains: filters.search, mode: 'insensitive' as const } },
+      ],
+    }),
+  };
 
-  // MOCK IMPLEMENTATION (mirrors Prisma logic exactly)
-  let requests = MOCK_JOB_REQUESTS.filter((r) => r.status === 'OPEN');
-
-  if (filters?.category) {
-    requests = requests.filter((r) => r.category === filters.category);
-  }
-  if (filters?.location) {
-    const loc = filters.location.toLowerCase();
-    requests = requests.filter((r) => r.location.toLowerCase().includes(loc));
-  }
-  if (filters?.urgency) {
-    requests = requests.filter((r) => r.urgency === filters.urgency);
-  }
-  if (filters?.search) {
-    const q = filters.search.toLowerCase();
-    requests = requests.filter(
-      (r) =>
-        r.title.toLowerCase().includes(q) ||
-        r.description.toLowerCase().includes(q) ||
-        r.category.toLowerCase().includes(q)
-    );
-  }
-
-  const sorted = requests.sort(
-    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
-  );
-
-  // Count BEFORE slicing — this is what Prisma's count() mirrors
-  const total = sorted.length;
-  const skip = (page - 1) * pageSize;
-  const paginated = sorted.slice(skip, skip + pageSize);
-
-  const items = paginated.map((req) => {
-    const client = MOCK_USERS.find((u) => u.id === req.clientId)!;
-    return {
-      ...req,
-      client: {
-        id: client.id,
-        name: client.name,
-        avatar: client.avatar,
-        isVerified: client.isVerified,
-        location: client.location,
+  const [paginated, total] = await Promise.all([
+    prisma.jobRequest.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            isVerified: true,
+            location: true,
+          },
+        },
       },
-    };
-  });
+    }),
+    prisma.jobRequest.count({ where }),
+  ]);
 
   return {
-    items,
+    items: paginated.map((req) => ({
+      ...req,
+      category: req.category as ServiceCategory,
+      budgetMin: req.budgetMin.toNumber(),
+      budgetMax: req.budgetMax.toNumber(),
+      createdAt: req.createdAt.toISOString(),
+      status: req.status as 'OPEN' | 'ASSIGNED' | 'CLOSED',
+      client: {
+        id: req.client.id,
+        name: req.client.name,
+        avatar: req.client.avatar ?? undefined,
+        location: req.client.location ?? undefined,
+        isVerified: req.client.isVerified,
+      },
+    })),
     total,
     page,
     pageSize,
@@ -401,8 +395,18 @@ export async function getMessages(conversationId: string): Promise<Message[]> {
 // ---------------------------------------------------------------------------
 
 export async function getClientJobs(clientId: string): Promise<JobRequest[]> {
-  // DB: return await prisma.jobRequest.findMany({ where: { clientId }, orderBy: { createdAt: 'desc' } });
-  return MOCK_JOB_REQUESTS.filter((r) => r.clientId === clientId).sort(
-    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
-  );
+  const jobs = await prisma.jobRequest.findMany({
+    where: { clientId },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return jobs.map((job) => ({
+    ...job,
+    category: job.category as ServiceCategory,
+    urgency: job.urgency as JobUrgency,
+    status: job.status as 'OPEN' | 'ASSIGNED' | 'CLOSED',
+    budgetMin: job.budgetMin.toNumber(),
+    budgetMax: job.budgetMax.toNumber(),
+    createdAt: job.createdAt.toISOString(),
+  }));
 }
