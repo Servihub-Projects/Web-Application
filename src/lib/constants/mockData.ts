@@ -393,6 +393,7 @@ export const MOCK_SERVICES: Service[] = [
 export const MOCK_BOOKINGS: Booking[] = [
   {
     id: 'bkg_01',
+    initiatedBy: 'CLIENT',
     serviceId: 'svc_01',
     clientId: 'user_c1',
     providerId: 'user_p1',
@@ -406,6 +407,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   },
   {
     id: 'bkg_02',
+    initiatedBy: 'CLIENT',
     serviceId: 'svc_05',
     clientId: 'user_c1',
     providerId: 'user_p3',
@@ -418,6 +420,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   },
   {
     id: 'bkg_03',
+    initiatedBy: 'CLIENT',
     serviceId: 'svc_07',
     clientId: 'user_c1',
     providerId: 'user_p4',
@@ -430,6 +433,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   },
   {
     id: 'bkg_04',
+    initiatedBy: 'CLIENT',
     serviceId: 'svc_03',
     clientId: 'user_c2',
     providerId: 'user_p2',
@@ -442,6 +446,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   },
   {
     id: 'bkg_05',
+    initiatedBy: 'CLIENT',
     serviceId: 'svc_11',
     clientId: 'user_c3',
     providerId: 'user_p6',
@@ -455,6 +460,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   },
   {
     id: 'bkg_06',
+    initiatedBy: 'CLIENT',
     serviceId: 'svc_09',
     clientId: 'user_c4',
     providerId: 'user_p5',
@@ -467,6 +473,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   },
   {
     id: 'bkg_07',
+    initiatedBy: 'CLIENT',
     serviceId: 'svc_02',
     clientId: 'user_c5',
     providerId: 'user_p1',
@@ -480,6 +487,7 @@ export const MOCK_BOOKINGS: Booking[] = [
   },
   {
     id: 'bkg_08',
+    initiatedBy: 'CLIENT',
     serviceId: 'svc_06',
     clientId: 'user_c6',
     providerId: 'user_p3',

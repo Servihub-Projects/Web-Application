@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import { BadgeCheck, BriefcaseBusiness } from 'lucide-react';
 import { getCurrentUser } from '@/src/lib/auth/auth';

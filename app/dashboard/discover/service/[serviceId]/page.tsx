@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { Briefcase, ChevronLeft, Clock, MapPin, MessageSquare, Star, BadgeCheck } from 'lucide-react';
+import { Briefcase, ChevronLeft, Clock, MapPin, Star, BadgeCheck } from 'lucide-react';
 import { getCurrentUser } from '@/src/lib/auth/auth';
-import { getProvidersLastJob, getServiceById } from '@/src/lib/data';
+import { getActiveBookingFor, getProvidersLastJob, getServiceById } from '@/src/lib/data';
 import { bookingStatusColor, bookingStatusLabel, formatDate, formatPrice, initials } from '@/src/lib/utils';
 import { HireHashScroll } from '@/src/components/dashboard/client/hire-hash-scroll';
+import HireProviderPanel from '@/src/components/dashboard/client/hire-provider-panel';
 
 interface PageProps {
   params: Promise<{ serviceId: string }>;
@@ -20,7 +21,10 @@ export default async function DiscoverServiceDetailPage({ params }: PageProps) {
   if (!service) notFound();
 
   const { provider } = service;
-  const lastJob = await getProvidersLastJob(provider.id);
+  const [lastJob, existingBooking] = await Promise.all([
+    getProvidersLastJob(provider.id),
+    getActiveBookingFor(user.id, service.id),
+  ]);
   const priceLabel =
     service.priceType === 'HOURLY'
       ? `${formatPrice(service.price, user.preferredCurrency)}/hr`
@@ -128,30 +132,15 @@ export default async function DiscoverServiceDetailPage({ params }: PageProps) {
             </div>
           )}
 
-          <section
-            id="hire"
-            className="scroll-mt-24 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-bg)] p-4 sm:p-5"
-          >
-            <h3 className="text-base font-semibold text-[var(--dash-text)]">Hire {provider.name}</h3>
-            <p className="mt-1 text-sm text-[var(--dash-text-muted)]">
-              Ready to move forward? Message the provider to discuss timing and scope, or review your existing bookings.
-            </p>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-              <Link
-                href="/dashboard/messages"
-                className="btn-primary inline-flex min-h-11 flex-1 items-center justify-center gap-2 px-4 py-2.5 text-center text-sm sm:flex-none"
-              >
-                <MessageSquare size={16} />
-                Message provider
-              </Link>
-              <Link
-                href="/dashboard/my-hires"
-                className="btn-secondary inline-flex min-h-11 flex-1 items-center justify-center px-4 py-2.5 text-center text-sm sm:flex-none"
-              >
-                View my hires
-              </Link>
-            </div>
-          </section>
+          <HireProviderPanel
+            serviceId={service.id}
+            providerName={provider.name}
+            serviceTitle={service.title}
+            defaultAmount={service.price}
+            priceType={service.priceType}
+            currencyCode={user.preferredCurrency}
+            existingBooking={existingBooking ? { id: existingBooking.id, status: existingBooking.status } : null}
+          />
         </div>
       </div>
     </div>

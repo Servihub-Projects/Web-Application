@@ -10,13 +10,17 @@ import {
 import { applyPlacementMetadata, rankServiceResults } from '@/src/lib/marketplace/placements';
 import type {
   User,
+  Booking,
+  BookingInitiator,
   ServiceWithProvider,
+  ServiceCategory,
   BookingWithDetails,
   BookingStatus,
   DashboardMetrics,
   ServiceFilters,
   UserRole,
   Notification,
+  NotificationType,
   JobRequest,
   JobRequestWithClient,
   JobRequestFilters,
@@ -189,31 +193,70 @@ export async function getProvidersLastJob(providerId: string): Promise<{
 // Bookings
 // ---------------------------------------------------------------------------
 
+/** Hydrate a raw booking with its service/client/provider/job-request details. */
+function toBookingWithDetails(booking: (typeof MOCK_BOOKINGS)[number]): BookingWithDetails {
+  const service = MOCK_SERVICES.find((s) => s.id === booking.serviceId);
+  const client = MOCK_USERS.find((u) => u.id === booking.clientId);
+  const provider = MOCK_USERS.find((u) => u.id === booking.providerId);
+  const jobRequest = booking.jobRequestId
+    ? MOCK_JOB_REQUESTS.find((r) => r.id === booking.jobRequestId)
+    : undefined;
+
+  return {
+    ...booking,
+    // Guard against a dangling serviceId so a single bad row can't crash the page.
+    // Proposals always carry a jobRequest, so its category is the natural fallback.
+    service: service
+      ? { id: service.id, title: service.title, category: service.category }
+      : {
+          id: booking.serviceId,
+          title: jobRequest?.title ?? 'Service',
+          category: jobRequest?.category ?? ('Cleaning' as ServiceCategory),
+        },
+    client: client
+      ? { id: client.id, name: client.name, avatar: client.avatar }
+      : undefined,
+    provider: provider
+      ? { id: provider.id, name: provider.name, avatar: provider.avatar, rating: provider.rating }
+      : undefined,
+    jobRequestTitle: jobRequest?.title,
+  };
+}
+
 export async function getBookings(
   userId: string,
   role: UserRole
 ): Promise<BookingWithDetails[]> {
-  // DB: return await prisma.booking.findMany({ where: role === 'CLIENT' ? { clientId: userId } : { providerId: userId }, include: { service: true, client: true, provider: true }, orderBy: { createdAt: 'desc' } });
+  // DB: return await prisma.booking.findMany({ where: role === 'CLIENT' ? { clientId: userId } : { providerId: userId }, include: { service: true, client: true, provider: true, jobRequest: true }, orderBy: { createdAt: 'desc' } });
   const bookings = MOCK_BOOKINGS.filter((b) =>
     role === 'CLIENT' ? b.clientId === userId : b.providerId === userId
   ).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
 
-  return bookings.map((booking) => {
-    const service = MOCK_SERVICES.find((s) => s.id === booking.serviceId)!;
-    const client = MOCK_USERS.find((u) => u.id === booking.clientId);
-    const provider = MOCK_USERS.find((u) => u.id === booking.providerId);
+  return bookings.map(toBookingWithDetails);
+}
 
-    return {
-      ...booking,
-      service: { id: service.id, title: service.title, category: service.category },
-      client: client
-        ? { id: client.id, name: client.name, avatar: client.avatar }
-        : undefined,
-      provider: provider
-        ? { id: provider.id, name: provider.name, avatar: provider.avatar, rating: provider.rating }
-        : undefined,
-    };
-  });
+export async function getBookingById(bookingId: string): Promise<BookingWithDetails | null> {
+  // DB: const b = await prisma.booking.findUnique({ where: { id: bookingId }, include: { service: true, client: true, provider: true, jobRequest: true } }); return b;
+  const booking = MOCK_BOOKINGS.find((b) => b.id === bookingId);
+  return booking ? toBookingWithDetails(booking) : null;
+}
+
+/**
+ * Find a client's most recent open/active booking with a given provider for a
+ * specific service. Used to stop a client from firing duplicate hire requests
+ * and to reflect the current state in the hire UI.
+ */
+export async function getActiveBookingFor(
+  clientId: string,
+  serviceId: string
+): Promise<BookingWithDetails | null> {
+  // DB: prisma.booking.findFirst({ where: { clientId, serviceId, status: { in: [...] } }, orderBy: { createdAt: 'desc' }, include: {...} })
+  const open: BookingStatus[] = ['PENDING', 'PROPOSAL_SENT', 'ACCEPTED', 'IN_PROGRESS'];
+  const booking = MOCK_BOOKINGS.filter(
+    (b) => b.clientId === clientId && b.serviceId === serviceId && open.includes(b.status)
+  ).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+
+  return booking ? toBookingWithDetails(booking) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -358,6 +401,11 @@ export async function getJobRequests(
     totalPages: Math.ceil(total / pageSize),
   };
 }
+export async function getJobRequestById(jobRequestId: string): Promise<JobRequest | null> {
+  // DB: return await prisma.jobRequest.findUnique({ where: { id: jobRequestId } });
+  return MOCK_JOB_REQUESTS.find((r) => r.id === jobRequestId) ?? null;
+}
+
 // ---------------------------------------------------------------------------
 // Conversations & Messages
 // ---------------------------------------------------------------------------
@@ -409,4 +457,106 @@ export async function getClientJobs(clientId: string): Promise<JobRequest[]> {
     budgetMax: job.budgetMax.toNumber(),
     createdAt: job.createdAt.toISOString(),
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Mutations (booking workflow)
+//
+// These mutate the in-memory mock store. Each has its Prisma equivalent noted
+// above it so the server actions that call them stay unchanged when the data
+// layer is swapped to the database.
+// ---------------------------------------------------------------------------
+
+let bookingSeq = 0;
+let notificationSeq = 0;
+
+const PLATFORM_FEE_RATE = 0.1; // 10% — kept here so fee logic has one home.
+
+export function calculatePlatformFee(amount: number): number {
+  return Math.round(amount * PLATFORM_FEE_RATE);
+}
+
+export interface CreateBookingInput {
+  serviceId: string;
+  clientId: string;
+  providerId: string;
+  status: BookingStatus;
+  initiatedBy: BookingInitiator;
+  totalAmount: number;
+  description: string;
+  startDate: string;
+  proposalMessage?: string;
+  jobRequestId?: string;
+}
+
+export async function createBooking(input: CreateBookingInput): Promise<BookingWithDetails> {
+  // DB: const created = await prisma.booking.create({ data: { ...input, platformFee }, include: {...} }); return created;
+  const booking: Booking = {
+    id: `bkg_${Date.now()}_${bookingSeq++}`,
+    serviceId: input.serviceId,
+    clientId: input.clientId,
+    providerId: input.providerId,
+    status: input.status,
+    initiatedBy: input.initiatedBy,
+    totalAmount: input.totalAmount,
+    platformFee: calculatePlatformFee(input.totalAmount),
+    description: input.description,
+    proposalMessage: input.proposalMessage,
+    jobRequestId: input.jobRequestId,
+    startDate: input.startDate,
+    createdAt: new Date().toISOString(),
+  };
+
+  MOCK_BOOKINGS.push(booking);
+  return toBookingWithDetails(booking);
+}
+
+export interface CreateNotificationInput {
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  actionUrl?: string;
+}
+
+export async function createNotification(input: CreateNotificationInput): Promise<Notification> {
+  // DB: return await prisma.notification.create({ data: input });
+  const notification: Notification = {
+    id: `notif_${Date.now()}_${notificationSeq++}`,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+    ...input,
+  };
+
+  MOCK_NOTIFICATIONS.push(notification);
+  return notification;
+}
+
+/**
+ * Pick the service a provider should attach to a proposal: prefer an active
+ * service in the job's category, otherwise the provider's first active service.
+ * Returns null when the provider has published no services yet.
+ */
+export async function getProviderProposalService(
+  providerId: string,
+  category?: string
+): Promise<{ id: string; title: string } | null> {
+  // DB: prisma.service.findFirst({ where: { providerId, isActive: true, ...(category ? { category } : {}) }, orderBy: { createdAt: 'asc' } })
+  const active = MOCK_SERVICES.filter((s) => s.providerId === providerId && s.isActive);
+  if (active.length === 0) return null;
+  const match = category ? active.find((s) => s.category === category) : undefined;
+  const service = match ?? active[0];
+  return { id: service.id, title: service.title };
+}
+
+export async function markJobRequestAssigned(jobRequestId: string): Promise<void> {
+  // DB: await prisma.jobRequest.update({ where: { id: jobRequestId }, data: { status: 'ASSIGNED' } });
+  const jobRequest = MOCK_JOB_REQUESTS.find((r) => r.id === jobRequestId);
+  if (jobRequest) jobRequest.status = 'ASSIGNED';
+}
+
+export async function reopenJobRequest(jobRequestId: string): Promise<void> {
+  // DB: await prisma.jobRequest.updateMany({ where: { id: jobRequestId, status: 'ASSIGNED' }, data: { status: 'OPEN' } });
+  const jobRequest = MOCK_JOB_REQUESTS.find((r) => r.id === jobRequestId);
+  if (jobRequest && jobRequest.status === 'ASSIGNED') jobRequest.status = 'OPEN';
 }

@@ -253,5 +253,5 @@ export async function updateProviderDetailsAction(
   revalidatePath('/dashboard', 'layout');
   revalidatePath('/dashboard/discover');
   revalidatePath('/dashboard/add-details');
-  redirect('/dashboard');
+  return { success: true };
 }

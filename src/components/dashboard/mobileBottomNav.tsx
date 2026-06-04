@@ -34,7 +34,7 @@ export default function MobileBottomNav({ links, user }: MobileNavProps) {
     exact ? pathname === href : pathname.startsWith(href);
 
   const MAX_VISIBLE = 4;
-  const mobileLinks = links.filter((link) => link.href !== '/add-details');
+  const mobileLinks = links.filter((link) => link.href !== '/dashboard/add-details');
   const visibleLinks = mobileLinks.slice(0, MAX_VISIBLE);
   const overflowLinks = mobileLinks.slice(MAX_VISIBLE);
 
