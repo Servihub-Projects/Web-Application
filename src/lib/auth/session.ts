@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import type { SessionUser } from '@/src/lib/types';
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE_SEC } from './session-constants';
 import { encodeSessionUser, parseSessionToken } from './session-token-node';
+import { prisma } from '../prisma';
 
 export { SESSION_COOKIE_NAME } from './session-constants';
 
@@ -28,11 +29,8 @@ export async function clearSession(): Promise<void> {
   store.delete(SESSION_COOKIE_NAME);
 }
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
-export async function getAllUsers(): Promise<SessionUser[]> {
+type AllUsers = Pick<SessionUser, "id" | "email" | "name">
+export async function getAllUsers(): Promise<AllUsers> {
   const users = await prisma.user.findMany();
   return users.map(user => ({
     id: user.id,

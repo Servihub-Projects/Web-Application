@@ -31,6 +31,7 @@ import type {
   JobUrgency,
 } from '@/src/lib/types';
 import { prisma } from '../prisma';
+import { PrismaClient } from '@/generated/prisma';
 
 // ---------------------------------------------------------------------------
 // Users
@@ -58,80 +59,66 @@ export async function getUserById(id: string): Promise<Omit<User, 'passwordHash'
 // Services
 // ---------------------------------------------------------------------------
 
-export async function getServices(
-  filters?: ServiceFilters
-): Promise<PaginatedResult<ServiceWithProvider>> {
+export async function getServices(filters?: ServiceFilters): Promise<PaginatedResult<ServiceWithProvider>> {
   const page = filters?.page ?? 1;
-  const pageSize = filters?.pageSize ?? 12; // 12 fits neatly in a 3-col grid
+  const pageSize = filters?.pageSize ?? 12;
 
-  // ─── FUTURE PRISMA SWAP ──────────────────────────────────────────
-  // const where = { isActive: true, ...buildWhereClause(filters) };
-  // const [paginated, total] = await Promise.all([
-  //   prisma.service.findMany({
-  //     where,
-  //     include: { provider: true },
-  //     orderBy: { createdAt: 'desc' },
-  //     skip: (page - 1) * pageSize,
-  //     take: pageSize,
-  //   }),
-  //   prisma.service.count({ where }),
-  // ]);
-  // ────────────────────────────────────────────────────────────────
-
-  let services = MOCK_SERVICES.filter((s) => s.isActive);
-
-  if (filters?.category) {
-    services = services.filter((s) => s.category === filters.category);
-  }
-  if (filters?.location) {
-    const loc = filters.location.toLowerCase();
-    services = services.filter((s) => {
-      const provider = MOCK_USERS.find((u) => u.id === s.providerId);
-      return provider?.location?.toLowerCase().includes(loc);
-    });
-  }
-  if (filters?.minPrice !== undefined) {
-    services = services.filter((s) => s.price >= filters.minPrice!);
-  }
-  if (filters?.maxPrice !== undefined) {
-    services = services.filter((s) => s.price <= filters.maxPrice!);
-  }
-  if (filters?.minRating !== undefined) {
-    services = services.filter((s) => (s.rating ?? 0) >= filters.minRating!);
-  }
-  if (filters?.search) {
-    const q = filters.search.toLowerCase();
-    services = services.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.description.toLowerCase().includes(q) ||
-        s.tags.some((t) => t.toLowerCase().includes(q)) ||
-        s.category.toLowerCase().includes(q)
-    );
-  }
-
-  const ranked = rankServiceResults(services.map((service) => {
-    const provider = MOCK_USERS.find((u) => u.id === service.providerId)!;
-    return {
-      ...service,
+  const where: prisma.ServiceWhereInput = {
+    isActive: true,
+    ...(filters?.category && { category: filters.category }),
+    ...(filters?.minPrice !== undefined || filters?.maxPrice !== undefined
+      ? {
+        price: {
+          ...(filters.minPrice !== undefined && { gte: filters.minPrice }),
+          ...(filters.maxPrice !== undefined && { lte: filters.maxPrice }),
+        },
+      }
+      : {}),
+    ...(filters?.minRating !== undefined && {
+      rating: { gte: filters.minRating },
+    }),
+    ...(filters?.location && {
       provider: {
-        id: provider.id,
-        name: provider.name,
-        avatar: provider.avatar,
-        rating: provider.rating,
-        reviewCount: provider.reviewCount,
-        location: provider.location,
-        isVerified: provider.isVerified,
+        location: { contains: filters.location, mode: "insensitive" },
       },
-    };
-  }));
+    }),
+    ...(filters?.search && {
+      OR: [
+        { title: { contains: filters.search, mode: "insensitive" } },
+        { description: { contains: filters.search, mode: "insensitive" } },
+        { category: { contains: filters.search, mode: "insensitive" } },
+        { tags: { hasSome: [filters.search] } },
+      ],
+    }),
+  };
 
-  const total = ranked.length;
-  const skip = (page - 1) * pageSize;
-  const paginated = ranked.slice(skip, skip + pageSize);
+  const [raw, total] = await Promise.all([
+    prisma.service.findMany({
+      where,
+      include: {
+        provider: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            rating: true,
+            reviewCount: true,
+            location: true,
+            isVerified: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.service.count({ where }),
+  ]);
+
+  const ranked = rankServiceResults(raw);
 
   return {
-    items: applyPlacementMetadata(paginated),
+    items: applyPlacementMetadata(ranked),
     total,
     page,
     pageSize,
@@ -209,10 +196,10 @@ function toBookingWithDetails(booking: (typeof MOCK_BOOKINGS)[number]): BookingW
     service: service
       ? { id: service.id, title: service.title, category: service.category }
       : {
-          id: booking.serviceId,
-          title: jobRequest?.title ?? 'Service',
-          category: jobRequest?.category ?? ('Cleaning' as ServiceCategory),
-        },
+        id: booking.serviceId,
+        title: jobRequest?.title ?? 'Service',
+        category: jobRequest?.category ?? ('Cleaning' as ServiceCategory),
+      },
     client: client
       ? { id: client.id, name: client.name, avatar: client.avatar }
       : undefined,
