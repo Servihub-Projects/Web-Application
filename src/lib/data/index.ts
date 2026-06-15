@@ -13,7 +13,6 @@ import type {
   Booking,
   BookingInitiator,
   ServiceWithProvider,
-  ServiceCategory,
   BookingWithDetails,
   BookingStatus,
   DashboardMetrics,
@@ -125,26 +124,27 @@ export async function getServices(filters?: ServiceFilters): Promise<PaginatedRe
     totalPages: Math.ceil(total / pageSize),
   };
 }
+
+
+// Get services by id
 export async function getServiceById(serviceId: string): Promise<ServiceWithProvider | null> {
-  // DB: return await prisma.service.findUnique({ where: { id: serviceId }, include: { provider: true } });
-  const service = MOCK_SERVICES.find((s) => s.id === serviceId);
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId }, include: {
+      provider: {
+        select: {
+          id: true,
+          name: true,
+          isVerified: true,
+          avatar: true,
+          location: true,
+          rating: true,
+          reviewCount: true,
+        }
+      }
+    }
+  });
   if (!service) return null;
-
-  const provider = MOCK_USERS.find((u) => u.id === service.providerId);
-  if (!provider) return null;
-
-  return {
-    ...service,
-    provider: {
-      id: provider.id,
-      name: provider.name,
-      avatar: provider.avatar,
-      rating: provider.rating,
-      reviewCount: provider.reviewCount,
-      location: provider.location,
-      isVerified: provider.isVerified,
-    },
-  };
+  return service
 }
 /** Most recent booking for a provider (by completion date, else start date, else created). Excludes declined. */
 export async function getProvidersLastJob(providerId: string): Promise<{

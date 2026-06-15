@@ -232,7 +232,7 @@ export interface CompleteJobResult {
 }
 
 export interface ServiceWithProvider extends Service {
-  provider: Pick<User, 'id' | 'name' | 'avatar' | 'rating' | 'reviewCount' | 'location' | 'isVerified'>;
+  provider: Pick<User, 'id' | 'name' | 'avatar' | 'rating' | 'reviewCount' | 'isVerified'> & { location: string | null };
   placement?: MarketplacePlacement;
 }
 

@@ -86,14 +86,14 @@ export default function ProviderCard({ service }: ProviderCardProps) {
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Link
+        {/*<Link
           href={`/dashboard/discover/service/${service.id}`}
           className="btn-secondary flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
         >
           View
-        </Link>
+        </Link>*/}
         <Link
-          href={`/dashboard/discover/service/${service.id}#hire`}
+          href={`/dashboard/discover/service/${service.id}`}
           className="btn-primary flex min-h-11 w-full items-center justify-center px-4 py-2.5 text-center text-sm"
         >
           Hire
