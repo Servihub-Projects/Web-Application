@@ -1,57 +1,40 @@
-import {
-  MOCK_USERS,
-  MOCK_SERVICES,
-  MOCK_BOOKINGS,
-  MOCK_NOTIFICATIONS,
-  MOCK_JOB_REQUESTS,
-  MOCK_CONVERSATIONS,
-  MOCK_MESSAGES,
-} from '@/src/lib/constants/mockData';
 import { applyPlacementMetadata, rankServiceResults } from '@/src/lib/marketplace/placements';
 import type {
-  User,
-  Booking,
   BookingInitiator,
-  ServiceWithProvider,
-  BookingWithDetails,
   BookingStatus,
+  ConversationWithParticipants,
   DashboardMetrics,
-  ServiceFilters,
-  UserRole,
+  JobRequest,
+  JobRequestFilters,
+  JobRequestWithClient,
+  JobUrgency,
+  Message,
   Notification,
   NotificationType,
-  JobRequest,
-  JobRequestWithClient,
-  JobRequestFilters,
-  ConversationWithParticipants,
-  Message,
   PaginatedResult,
   ServiceCategory,
-  JobUrgency,
+  ServiceFilters,
+  ServiceWithProvider,
+  UserRole,
+  BookingWithDetails,
 } from '@/src/lib/types';
 import { prisma } from '../prisma';
-import { PrismaClient } from '@/generated/prisma';
 
 // ---------------------------------------------------------------------------
 // Users
 // ---------------------------------------------------------------------------
 
-export async function getUsers(): Promise<Omit<User, 'passwordHash'>[]> {
-  // DB: return await prisma.user.findMany({ omit: { passwordHash: true } });
-  return MOCK_USERS.map((user) => {
-    const { passwordHash, ...safeUser } = user;
-    void passwordHash;
-    return safeUser;
+export async function getUsers() {
+  return prisma.user.findMany({
+    omit: { passwordHash: true },
   });
 }
 
-export async function getUserById(id: string): Promise<Omit<User, 'passwordHash'> | null> {
-  // DB: return await prisma.user.findUnique({ where: { id }, omit: { passwordHash: true } });
-  const user = MOCK_USERS.find((u) => u.id === id);
-  if (!user) return null;
-  const { passwordHash, ...rest } = user;
-  void passwordHash;
-  return rest;
+export async function getUserById(id: string) {
+  return prisma.user.findUnique({
+    where: { id },
+    omit: { passwordHash: true },
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -62,7 +45,7 @@ export async function getServices(filters?: ServiceFilters): Promise<PaginatedRe
   const page = filters?.page ?? 1;
   const pageSize = filters?.pageSize ?? 12;
 
-  const where: prisma.ServiceWhereInput = {
+  const where: Parameters<typeof prisma.service.findMany>[0]['where'] = {
     isActive: true,
     ...(filters?.category && { category: filters.category }),
     ...(filters?.minPrice !== undefined || filters?.maxPrice !== undefined
@@ -78,14 +61,14 @@ export async function getServices(filters?: ServiceFilters): Promise<PaginatedRe
     }),
     ...(filters?.location && {
       provider: {
-        location: { contains: filters.location, mode: "insensitive" },
+        location: { contains: filters.location, mode: 'insensitive' },
       },
     }),
     ...(filters?.search && {
       OR: [
-        { title: { contains: filters.search, mode: "insensitive" } },
-        { description: { contains: filters.search, mode: "insensitive" } },
-        { category: { contains: filters.search, mode: "insensitive" } },
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { category: { contains: filters.search, mode: 'insensitive' } },
         { tags: { hasSome: [filters.search] } },
       ],
     }),
@@ -107,7 +90,7 @@ export async function getServices(filters?: ServiceFilters): Promise<PaginatedRe
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
@@ -125,11 +108,10 @@ export async function getServices(filters?: ServiceFilters): Promise<PaginatedRe
   };
 }
 
-
-// Get services by id
 export async function getServiceById(serviceId: string): Promise<ServiceWithProvider | null> {
-  const service = await prisma.service.findUnique({
-    where: { id: serviceId }, include: {
+  return prisma.service.findUnique({
+    where: { id: serviceId },
+    include: {
       provider: {
         select: {
           id: true,
@@ -139,13 +121,12 @@ export async function getServiceById(serviceId: string): Promise<ServiceWithProv
           location: true,
           rating: true,
           reviewCount: true,
-        }
-      }
-    }
+        },
+      },
+    },
   });
-  if (!service) return null;
-  return service
 }
+
 /** Most recent booking for a provider (by completion date, else start date, else created). Excludes declined. */
 export async function getProvidersLastJob(providerId: string): Promise<{
   serviceTitle: string;
@@ -154,25 +135,34 @@ export async function getProvidersLastJob(providerId: string): Promise<{
   description: string;
   dateIso: string;
 } | null> {
-  const list = MOCK_BOOKINGS.filter(
-    (b) => b.providerId === providerId && b.status !== 'DECLINED'
-  );
-  if (list.length === 0) return null;
-
-  const sorted = [...list].sort((a, b) => {
-    const ta = Date.parse(a.completionDate ?? a.startDate ?? a.createdAt);
-    const tb = Date.parse(b.completionDate ?? b.startDate ?? b.createdAt);
-    return tb - ta;
+  const booking = await prisma.booking.findFirst({
+    where: {
+      providerId,
+      status: { not: 'DECLINED' },
+    },
+    orderBy: [
+      { completionDate: { sort: 'desc', nulls: 'last' } },
+      { startDate: { sort: 'desc', nulls: 'last' } },
+      { createdAt: 'desc' },
+    ],
+    select: {
+      status: true,
+      description: true,
+      completionDate: true,
+      startDate: true,
+      createdAt: true,
+      service: { select: { title: true, category: true } },
+    },
   });
 
-  const booking = sorted[0];
-  const service = MOCK_SERVICES.find((s) => s.id === booking.serviceId);
+  if (!booking) return null;
+
   return {
-    serviceTitle: service?.title ?? 'Service',
-    category: service?.category ?? '',
-    status: booking.status,
+    serviceTitle: booking.service.title,
+    category: booking.service.category,
+    status: booking.status as BookingStatus,
     description: booking.description,
-    dateIso: booking.completionDate ?? booking.startDate ?? booking.createdAt,
+    dateIso: (booking.completionDate ?? booking.startDate ?? booking.createdAt).toISOString(),
   };
 }
 
@@ -180,69 +170,70 @@ export async function getProvidersLastJob(providerId: string): Promise<{
 // Bookings
 // ---------------------------------------------------------------------------
 
-/** Hydrate a raw booking with its service/client/provider/job-request details. */
-function toBookingWithDetails(booking: (typeof MOCK_BOOKINGS)[number]): BookingWithDetails {
-  const service = MOCK_SERVICES.find((s) => s.id === booking.serviceId);
-  const client = MOCK_USERS.find((u) => u.id === booking.clientId);
-  const provider = MOCK_USERS.find((u) => u.id === booking.providerId);
-  const jobRequest = booking.jobRequestId
-    ? MOCK_JOB_REQUESTS.find((r) => r.id === booking.jobRequestId)
-    : undefined;
+const bookingInclude = {
+  service: { select: { id: true, title: true, category: true } },
+  client: { select: { id: true, name: true, avatar: true } },
+  provider: { select: { id: true, name: true, avatar: true, rating: true } },
+  jobRequest: { select: { title: true } },
+} as const;
 
+/** Map a raw Prisma booking (with includes) to BookingWithDetails. */
+function toBookingWithDetails(
+  booking: Awaited<ReturnType<typeof prisma.booking.findFirst<{ include: typeof bookingInclude }>>>
+): BookingWithDetails {
+  if (!booking) throw new Error('toBookingWithDetails called with null');
   return {
     ...booking,
-    // Guard against a dangling serviceId so a single bad row can't crash the page.
-    // Proposals always carry a jobRequest, so its category is the natural fallback.
-    service: service
-      ? { id: service.id, title: service.title, category: service.category }
-      : {
-        id: booking.serviceId,
-        title: jobRequest?.title ?? 'Service',
-        category: jobRequest?.category ?? ('Cleaning' as ServiceCategory),
-      },
-    client: client
-      ? { id: client.id, name: client.name, avatar: client.avatar }
-      : undefined,
-    provider: provider
-      ? { id: provider.id, name: provider.name, avatar: provider.avatar, rating: provider.rating }
-      : undefined,
-    jobRequestTitle: jobRequest?.title,
+    totalAmount: booking.totalAmount.toNumber(),
+    platformFee: booking.platformFee.toNumber(),
+    startDate: booking.startDate.toISOString(),
+    completionDate: booking.completionDate?.toISOString(),
+    cancelledAt: booking.cancelledAt?.toISOString(),
+    createdAt: booking.createdAt.toISOString(),
+    updatedAt: booking.updatedAt.toISOString(),
+    status: booking.status as BookingStatus,
+    initiatedBy: booking.initiatedBy as BookingInitiator,
+    service: booking.service ?? {
+      id: '',
+      title: booking.jobRequest?.title ?? 'Service',
+      category: 'Cleaning' as ServiceCategory,
+    },
+    client: booking.client ?? undefined,
+    provider: booking.provider ?? undefined,
+    jobRequestTitle: booking.jobRequest?.title,
   };
 }
 
-export async function getBookings(
-  userId: string,
-  role: UserRole
-): Promise<BookingWithDetails[]> {
-  // DB: return await prisma.booking.findMany({ where: role === 'CLIENT' ? { clientId: userId } : { providerId: userId }, include: { service: true, client: true, provider: true, jobRequest: true }, orderBy: { createdAt: 'desc' } });
-  const bookings = MOCK_BOOKINGS.filter((b) =>
-    role === 'CLIENT' ? b.clientId === userId : b.providerId === userId
-  ).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
-
+export async function getBookings(userId: string, role: UserRole): Promise<BookingWithDetails[]> {
+  const bookings = await prisma.booking.findMany({
+    where: role === 'CLIENT' ? { clientId: userId } : { providerId: userId },
+    include: bookingInclude,
+    orderBy: { createdAt: 'desc' },
+  });
   return bookings.map(toBookingWithDetails);
 }
 
 export async function getBookingById(bookingId: string): Promise<BookingWithDetails | null> {
-  // DB: const b = await prisma.booking.findUnique({ where: { id: bookingId }, include: { service: true, client: true, provider: true, jobRequest: true } }); return b;
-  const booking = MOCK_BOOKINGS.find((b) => b.id === bookingId);
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: bookingInclude,
+  });
   return booking ? toBookingWithDetails(booking) : null;
 }
 
-/**
- * Find a client's most recent open/active booking with a given provider for a
- * specific service. Used to stop a client from firing duplicate hire requests
- * and to reflect the current state in the hire UI.
- */
 export async function getActiveBookingFor(
   clientId: string,
   serviceId: string
 ): Promise<BookingWithDetails | null> {
-  // DB: prisma.booking.findFirst({ where: { clientId, serviceId, status: { in: [...] } }, orderBy: { createdAt: 'desc' }, include: {...} })
-  const open: BookingStatus[] = ['PENDING', 'PROPOSAL_SENT', 'ACCEPTED', 'IN_PROGRESS'];
-  const booking = MOCK_BOOKINGS.filter(
-    (b) => b.clientId === clientId && b.serviceId === serviceId && open.includes(b.status)
-  ).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
-
+  const booking = await prisma.booking.findFirst({
+    where: {
+      clientId,
+      serviceId,
+      status: { in: ['PENDING', 'PROPOSAL_SENT', 'ACCEPTED', 'IN_PROGRESS'] },
+    },
+    include: bookingInclude,
+    orderBy: { createdAt: 'desc' },
+  });
   return booking ? toBookingWithDetails(booking) : null;
 }
 
@@ -250,51 +241,65 @@ export async function getActiveBookingFor(
 // Dashboard Metrics
 // ---------------------------------------------------------------------------
 
-export async function getDashboardMetrics(
-  userId: string,
-  role: UserRole
-): Promise<DashboardMetrics> {
-  // DB: complex aggregation — replace with prisma.$queryRaw or aggregation methods.
-  const userBookings = MOCK_BOOKINGS.filter((b) =>
-    role === 'CLIENT' ? b.clientId === userId : b.providerId === userId
-  );
-
+export async function getDashboardMetrics(userId: string, role: UserRole): Promise<DashboardMetrics> {
   if (role === 'CLIENT') {
-    let activeBookings = 0, totalSpent = 0, completedJobs = 0;
+    const [totalBookings, activeBookings, completedAgg] = await Promise.all([
+      prisma.booking.count({ where: { clientId: userId } }),
+      prisma.booking.count({
+        where: { clientId: userId, status: { in: ['PENDING', 'ACCEPTED', 'IN_PROGRESS'] } },
+      }),
+      prisma.booking.aggregate({
+        where: { clientId: userId, status: 'COMPLETED' },
+        _count: { id: true },
+        _sum: { totalAmount: true },
+      }),
+    ]);
 
-    for (const b of userBookings) {
-      if (b.status === 'PENDING' || b.status === 'ACCEPTED' || b.status === 'IN_PROGRESS') activeBookings++;
-      if (b.status === 'COMPLETED') { totalSpent += b.totalAmount; completedJobs++; }
-    }
-
-    return { totalBookings: userBookings.length, activeBookings, totalSpent, completedJobs };
+    return {
+      totalBookings,
+      activeBookings,
+      completedJobs: completedAgg._count.id,
+      totalSpent: completedAgg._sum.totalAmount?.toNumber() ?? 0,
+    };
   }
 
-  // PROVIDER — single pass over the array
-  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  let activeBookings = 0, totalEarned = 0, monthlyEarnings = 0, completedJobs = 0;
+  // PROVIDER
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  for (const b of userBookings) {
-    if (b.status === 'PENDING' || b.status === 'ACCEPTED' || b.status === 'IN_PROGRESS') activeBookings++;
-    if (b.status === 'COMPLETED') {
-      const net = b.totalAmount - b.platformFee;
-      totalEarned += net;
-      completedJobs++;
-      if (Date.parse(b.createdAt) > thirtyDaysAgo) monthlyEarnings += net;
-    }
-  }
+  const [totalBookings, activeBookings, completedAgg, monthlyAgg, provider] = await Promise.all([
+    prisma.booking.count({ where: { providerId: userId } }),
+    prisma.booking.count({
+      where: { providerId: userId, status: { in: ['PENDING', 'ACCEPTED', 'IN_PROGRESS'] } },
+    }),
+    // Net earnings = totalAmount - platformFee, but Prisma can't subtract two aggregated
+    // columns directly — sum both and subtract in JS.
+    prisma.booking.aggregate({
+      where: { providerId: userId, status: 'COMPLETED' },
+      _count: { id: true },
+      _sum: { totalAmount: true, platformFee: true },
+    }),
+    prisma.booking.aggregate({
+      where: { providerId: userId, status: 'COMPLETED', createdAt: { gte: thirtyDaysAgo } },
+      _sum: { totalAmount: true, platformFee: true },
+    }),
+    prisma.user.findUnique({ where: { id: userId }, select: { rating: true } }),
+  ]);
 
-  const completionRate = userBookings.length > 0
-    ? Math.round((completedJobs / userBookings.length) * 100)
-    : 0;
-
-  const provider = MOCK_USERS.find((u) => u.id === userId);
+  const completedJobs = completedAgg._count.id;
+  const totalEarned =
+    (completedAgg._sum.totalAmount?.toNumber() ?? 0) -
+    (completedAgg._sum.platformFee?.toNumber() ?? 0);
+  const monthlyEarnings =
+    (monthlyAgg._sum.totalAmount?.toNumber() ?? 0) -
+    (monthlyAgg._sum.platformFee?.toNumber() ?? 0);
+  const completionRate =
+    totalBookings > 0 ? Math.round((completedJobs / totalBookings) * 100) : 0;
 
   return {
-    totalBookings: userBookings.length,
+    totalBookings,
     activeBookings,
     totalEarned,
-    averageRating: provider?.rating,
+    averageRating: provider?.rating ?? undefined,
     completionRate,
     completedJobs,
     monthlyEarnings,
@@ -306,22 +311,25 @@ export async function getDashboardMetrics(
 // ---------------------------------------------------------------------------
 
 export async function getNotifications(userId: string): Promise<Notification[]> {
-  // DB: return await prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } });
-  return MOCK_NOTIFICATIONS.filter((n) => n.userId === userId).sort(
-    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)
-  );
+  const rows = await prisma.notification.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+  });
+  return rows.map((n) => ({
+    ...n,
+    type: n.type as NotificationType,
+    createdAt: n.createdAt.toISOString(),
+    actionUrl: n.actionUrl ?? undefined,
+  }));
 }
 
 export async function getUnreadNotificationCount(userId: string): Promise<number> {
-  // DB: return await prisma.notification.count({ where: { userId, isRead: false } });
-  return MOCK_NOTIFICATIONS.filter((n) => n.userId === userId && !n.isRead).length;
+  return prisma.notification.count({ where: { userId, isRead: false } });
 }
 
 // ---------------------------------------------------------------------------
-// Job Requests (providers find client work)
+// Job Requests
 // ---------------------------------------------------------------------------
-
-// src/lib/actions/job-requests.ts  (or wherever your function lives)
 
 export async function getJobRequests(
   filters?: JobRequestFilters
@@ -329,18 +337,18 @@ export async function getJobRequests(
   const page = filters?.page ?? 1;
   const pageSize = filters?.pageSize ?? 10;
 
-  const where = {
-    status: 'OPEN' as const,
+  const where: Parameters<typeof prisma.jobRequest.findMany>[0]['where'] = {
+    status: 'OPEN',
     ...(filters?.category && { category: filters.category }),
     ...(filters?.urgency && { urgency: filters.urgency }),
     ...(filters?.location && {
-      location: { contains: filters.location, mode: 'insensitive' as const },
+      location: { contains: filters.location, mode: 'insensitive' },
     }),
     ...(filters?.search && {
       OR: [
-        { title: { contains: filters.search, mode: 'insensitive' as const } },
-        { description: { contains: filters.search, mode: 'insensitive' as const } },
-        { category: { contains: filters.search, mode: 'insensitive' as const } },
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { category: { contains: filters.search, mode: 'insensitive' } },
       ],
     }),
   };
@@ -370,9 +378,11 @@ export async function getJobRequests(
     items: paginated.map((req) => ({
       ...req,
       category: req.category as ServiceCategory,
+      urgency: req.urgency as JobUrgency,
       budgetMin: req.budgetMin.toNumber(),
       budgetMax: req.budgetMax.toNumber(),
       createdAt: req.createdAt.toISOString(),
+      updatedAt: req.updatedAt.toISOString(),
       status: req.status as 'OPEN' | 'ASSIGNED' | 'CLOSED',
       client: {
         id: req.client.id,
@@ -388,9 +398,20 @@ export async function getJobRequests(
     totalPages: Math.ceil(total / pageSize),
   };
 }
+
 export async function getJobRequestById(jobRequestId: string): Promise<JobRequest | null> {
-  // DB: return await prisma.jobRequest.findUnique({ where: { id: jobRequestId } });
-  return MOCK_JOB_REQUESTS.find((r) => r.id === jobRequestId) ?? null;
+  const req = await prisma.jobRequest.findUnique({ where: { id: jobRequestId } });
+  if (!req) return null;
+  return {
+    ...req,
+    category: req.category as ServiceCategory,
+    urgency: req.urgency as JobUrgency,
+    status: req.status as 'OPEN' | 'ASSIGNED' | 'CLOSED',
+    budgetMin: req.budgetMin.toNumber(),
+    budgetMax: req.budgetMax.toNumber(),
+    createdAt: req.createdAt.toISOString(),
+    updatedAt: req.updatedAt.toISOString(),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -398,35 +419,58 @@ export async function getJobRequestById(jobRequestId: string): Promise<JobReques
 // ---------------------------------------------------------------------------
 
 export async function getConversations(userId: string): Promise<ConversationWithParticipants[]> {
-  // DB: return await prisma.conversation.findMany({ where: { participants: { has: userId } }, include: { messages: { orderBy: { createdAt: 'asc' } } }, orderBy: { lastMessageAt: 'desc' } });
-  const convs = MOCK_CONVERSATIONS.filter((c) => c.participants.includes(userId)).sort(
-    (a, b) => Date.parse(b.lastMessageAt) - Date.parse(a.lastMessageAt)
-  );
+  const convs = await prisma.conversation.findMany({
+    where: { participants: { has: userId } },
+    include: {
+      messages: { orderBy: { createdAt: 'asc' } },
+    },
+    orderBy: { lastMessageAt: 'desc' },
+  });
+
+  const otherUserIds = convs.map((c) => c.participants.find((p) => p !== userId)!).filter(Boolean);
+  const otherUsers = await prisma.user.findMany({
+    where: { id: { in: otherUserIds } },
+    select: { id: true, name: true, avatar: true, role: true },
+  });
+  const userMap = Object.fromEntries(otherUsers.map((u) => [u.id, u]));
 
   return convs.map((conv) => {
     const otherId = conv.participants.find((p) => p !== userId)!;
-    const other = MOCK_USERS.find((u) => u.id === otherId)!;
-    const messages = MOCK_MESSAGES.filter((m) => m.conversationId === conv.id).sort(
-      (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
-    );
-
+    const other = userMap[otherId];
     return {
       ...conv,
-      otherUser: { id: other.id, name: other.name, avatar: other.avatar, role: other.role },
-      messages,
+      lastMessageAt: conv.lastMessageAt.toISOString(),
+      createdAt: conv.createdAt.toISOString(),
+      updatedAt: conv.updatedAt.toISOString(),
+      otherUser: {
+        id: other.id,
+        name: other.name,
+        avatar: other.avatar ?? undefined,
+        role: other.role as UserRole,
+      },
+      messages: conv.messages.map((m) => ({
+        ...m,
+        createdAt: m.createdAt.toISOString(),
+        attachment: m.attachment ?? undefined,
+      })),
     };
   });
 }
 
 export async function getMessages(conversationId: string): Promise<Message[]> {
-  // DB: return await prisma.message.findMany({ where: { conversationId }, orderBy: { createdAt: 'asc' } });
-  return MOCK_MESSAGES.filter((m) => m.conversationId === conversationId).sort(
-    (a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)
-  );
+  const rows = await prisma.message.findMany({
+    where: { conversationId },
+    orderBy: { createdAt: 'asc' },
+  });
+  return rows.map((m) => ({
+    ...m,
+    createdAt: m.createdAt.toISOString(),
+    attachment: m.attachment ?? undefined,
+  }));
 }
 
 // ---------------------------------------------------------------------------
-// Client Jobs (job listings posted by a client)
+// Client Jobs
 // ---------------------------------------------------------------------------
 
 export async function getClientJobs(clientId: string): Promise<JobRequest[]> {
@@ -443,21 +487,15 @@ export async function getClientJobs(clientId: string): Promise<JobRequest[]> {
     budgetMin: job.budgetMin.toNumber(),
     budgetMax: job.budgetMax.toNumber(),
     createdAt: job.createdAt.toISOString(),
+    updatedAt: job.updatedAt.toISOString(),
   }));
 }
 
 // ---------------------------------------------------------------------------
-// Mutations (booking workflow)
-//
-// These mutate the in-memory mock store. Each has its Prisma equivalent noted
-// above it so the server actions that call them stay unchanged when the data
-// layer is swapped to the database.
+// Mutations
 // ---------------------------------------------------------------------------
 
-let bookingSeq = 0;
-let notificationSeq = 0;
-
-const PLATFORM_FEE_RATE = 0.1; // 10% — kept here so fee logic has one home.
+const PLATFORM_FEE_RATE = 0.1;
 
 export function calculatePlatformFee(amount: number): number {
   return Math.round(amount * PLATFORM_FEE_RATE);
@@ -477,24 +515,23 @@ export interface CreateBookingInput {
 }
 
 export async function createBooking(input: CreateBookingInput): Promise<BookingWithDetails> {
-  // DB: const created = await prisma.booking.create({ data: { ...input, platformFee }, include: {...} }); return created;
-  const booking: Booking = {
-    id: `bkg_${Date.now()}_${bookingSeq++}`,
-    serviceId: input.serviceId,
-    clientId: input.clientId,
-    providerId: input.providerId,
-    status: input.status,
-    initiatedBy: input.initiatedBy,
-    totalAmount: input.totalAmount,
-    platformFee: calculatePlatformFee(input.totalAmount),
-    description: input.description,
-    proposalMessage: input.proposalMessage,
-    jobRequestId: input.jobRequestId,
-    startDate: input.startDate,
-    createdAt: new Date().toISOString(),
-  };
-
-  MOCK_BOOKINGS.push(booking);
+  const platformFee = calculatePlatformFee(input.totalAmount);
+  const booking = await prisma.booking.create({
+    data: {
+      serviceId: input.serviceId,
+      clientId: input.clientId,
+      providerId: input.providerId,
+      status: input.status,
+      initiatedBy: input.initiatedBy,
+      totalAmount: input.totalAmount,
+      platformFee,
+      description: input.description,
+      proposalMessage: input.proposalMessage,
+      jobRequestId: input.jobRequestId,
+      startDate: new Date(input.startDate),
+    },
+    include: bookingInclude,
+  });
   return toBookingWithDetails(booking);
 }
 
@@ -507,43 +544,54 @@ export interface CreateNotificationInput {
 }
 
 export async function createNotification(input: CreateNotificationInput): Promise<Notification> {
-  // DB: return await prisma.notification.create({ data: input });
-  const notification: Notification = {
-    id: `notif_${Date.now()}_${notificationSeq++}`,
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    ...input,
+  const n = await prisma.notification.create({ data: input });
+  return {
+    ...n,
+    type: n.type as NotificationType,
+    createdAt: n.createdAt.toISOString(),
+    actionUrl: n.actionUrl ?? undefined,
   };
-
-  MOCK_NOTIFICATIONS.push(notification);
-  return notification;
 }
 
-/**
- * Pick the service a provider should attach to a proposal: prefer an active
- * service in the job's category, otherwise the provider's first active service.
- * Returns null when the provider has published no services yet.
- */
 export async function getProviderProposalService(
   providerId: string,
   category?: string
 ): Promise<{ id: string; title: string } | null> {
-  // DB: prisma.service.findFirst({ where: { providerId, isActive: true, ...(category ? { category } : {}) }, orderBy: { createdAt: 'asc' } })
-  const active = MOCK_SERVICES.filter((s) => s.providerId === providerId && s.isActive);
-  if (active.length === 0) return null;
-  const match = category ? active.find((s) => s.category === category) : undefined;
-  const service = match ?? active[0];
-  return { id: service.id, title: service.title };
+  // Prefer a matching category; fall back to any active service.
+  const service = await prisma.service.findFirst({
+    where: {
+      providerId,
+      isActive: true,
+      ...(category ? { category } : {}),
+    },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, title: true },
+  });
+
+  if (service) return service;
+
+  // Category-specific search found nothing — try without the category filter.
+  if (category) {
+    return prisma.service.findFirst({
+      where: { providerId, isActive: true },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, title: true },
+    });
+  }
+
+  return null;
 }
 
 export async function markJobRequestAssigned(jobRequestId: string): Promise<void> {
-  // DB: await prisma.jobRequest.update({ where: { id: jobRequestId }, data: { status: 'ASSIGNED' } });
-  const jobRequest = MOCK_JOB_REQUESTS.find((r) => r.id === jobRequestId);
-  if (jobRequest) jobRequest.status = 'ASSIGNED';
+  await prisma.jobRequest.update({
+    where: { id: jobRequestId },
+    data: { status: 'ASSIGNED' },
+  });
 }
 
 export async function reopenJobRequest(jobRequestId: string): Promise<void> {
-  // DB: await prisma.jobRequest.updateMany({ where: { id: jobRequestId, status: 'ASSIGNED' }, data: { status: 'OPEN' } });
-  const jobRequest = MOCK_JOB_REQUESTS.find((r) => r.id === jobRequestId);
-  if (jobRequest && jobRequest.status === 'ASSIGNED') jobRequest.status = 'OPEN';
+  await prisma.jobRequest.updateMany({
+    where: { id: jobRequestId, status: 'ASSIGNED' },
+    data: { status: 'OPEN' },
+  });
 }

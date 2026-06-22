@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resend } from "@/src/lib/resend";
 import crypto from "crypto";
 import { prisma } from "@/src/lib/prisma";
+import { Resend } from "resend";
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function generateResetToken() {
   return crypto.randomBytes(32).toString("hex");
@@ -13,9 +14,10 @@ function hashToken(token: string) {
 }
 
 export async function POST(request: NextRequest) {
+
   try {
     const { email } = await request.json();
-
+    console.log(email)
     if (!email || typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json(
         { error: "A valid email address is required." },
@@ -49,8 +51,8 @@ export async function POST(request: NextRequest) {
 
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
-    await resend.emails.send({
-      from: "Your App <no-reply@yourdomain.com>",
+    const sent = await resend.emails.send({
+      from: "Servihub <auth@servihub.net>",
       to: email,
       subject: "Reset your password",
       html: `
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
         </div>
       `,
     });
-
+    console.log(sent)
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Forgot password error:", error);

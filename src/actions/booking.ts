@@ -2,8 +2,8 @@
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
-import { MOCK_BOOKINGS } from '@/src/lib/constants/mockData';
 import { getCurrentUser } from '@/src/lib/auth/auth';
+import { prisma } from '@/src/lib/prisma';
 import {
   createBooking,
   createNotification,
@@ -16,15 +16,12 @@ import type { BookingActionResult, CompleteJobResult } from '@/src/lib/types';
 
 const bookingIdSchema = z.string().min(1).max(100).regex(/^[\w-]+$/, 'Invalid booking ID.');
 
-// Amounts are stored in NGN. Keep the bounds aligned with the provider-details form.
-// `.finite()` rejects NaN (e.g. from an empty/garbage numeric input) with a message.
 const amountSchema = z
   .number()
   .finite('Enter a valid amount.')
   .min(1, 'Amount must be greater than zero.')
   .max(1_000_000_000, 'Amount is too large.');
 
-// Reusable revalidation for every surface that renders booking state.
 function revalidateBookingSurfaces() {
   revalidatePath('/dashboard', 'layout');
   revalidatePath('/dashboard/my-hires');
@@ -69,13 +66,14 @@ export async function hireProviderAction(input: HireProviderInput): Promise<Book
     return { success: false, error: 'You cannot hire yourself.' };
   }
 
-  // Block duplicate open requests for the same service so the queue stays clean.
-  const open = MOCK_BOOKINGS.find(
-    (b) =>
-      b.clientId === user.id &&
-      b.serviceId === service.id &&
-      (b.status === 'PENDING' || b.status === 'ACCEPTED' || b.status === 'IN_PROGRESS')
-  );
+  const open = await prisma.booking.findFirst({
+    where: {
+      clientId: user.id,
+      serviceId: service.id,
+      status: { in: ['PENDING', 'ACCEPTED', 'IN_PROGRESS'] },
+    },
+    select: { id: true },
+  });
   if (open) {
     return { success: false, error: 'You already have an active booking for this service.' };
   }
@@ -128,11 +126,13 @@ export async function sendProposalAction(input: SendProposalInput): Promise<Book
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid proposal details.' };
   }
+  console.log(parsed)
 
   const user = await getCurrentUser();
   if (!user) return { success: false, error: 'Please sign in to send a proposal.' };
   if (user.role !== 'PROVIDER') return { success: false, error: 'Only providers can send proposals.' };
 
+  console.log(parsed.data.jobRequestId)
   const jobRequest = await getJobRequestById(parsed.data.jobRequestId);
   if (!jobRequest) return { success: false, error: 'This job request is no longer available.' };
   if (jobRequest.status !== 'OPEN') {
@@ -142,13 +142,14 @@ export async function sendProposalAction(input: SendProposalInput): Promise<Book
     return { success: false, error: 'You cannot propose on your own job request.' };
   }
 
-  // One proposal per provider per job request.
-  const existing = MOCK_BOOKINGS.find(
-    (b) =>
-      b.jobRequestId === jobRequest.id &&
-      b.providerId === user.id &&
-      (b.status === 'PROPOSAL_SENT' || b.status === 'ACCEPTED' || b.status === 'IN_PROGRESS')
-  );
+  const existing = await prisma.booking.findFirst({
+    where: {
+      jobRequestId: jobRequest.id,
+      providerId: user.id,
+      status: { in: ['PROPOSAL_SENT', 'ACCEPTED', 'IN_PROGRESS'] },
+    },
+    select: { id: true },
+  });
   if (existing) {
     return { success: false, error: 'You have already sent a proposal for this job.' };
   }
@@ -197,13 +198,20 @@ export async function acceptProposalAction(bookingId: string): Promise<{ success
   const user = await getCurrentUser();
   if (!user || user.role !== 'CLIENT') return { success: false, error: 'Not authorised.' };
 
-  const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
-  if (!booking || booking.clientId !== user.id) return { success: false, error: 'Proposal not found.' };
+  const booking = await prisma.booking.findFirst({
+    where: { id: parsed.data, clientId: user.id },
+    select: { id: true, status: true, providerId: true, jobRequestId: true },
+  });
+  if (!booking) return { success: false, error: 'Proposal not found.' };
   if (booking.status !== 'PROPOSAL_SENT') {
     return { success: false, error: 'This proposal can no longer be accepted.' };
   }
 
-  booking.status = 'ACCEPTED';
+  await prisma.booking.update({
+    where: { id: booking.id },
+    data: { status: 'ACCEPTED' },
+  });
+
   if (booking.jobRequestId) await markJobRequestAssigned(booking.jobRequestId);
 
   await createNotification({
@@ -225,13 +233,19 @@ export async function rejectProposalAction(bookingId: string): Promise<{ success
   const user = await getCurrentUser();
   if (!user || user.role !== 'CLIENT') return { success: false, error: 'Not authorised.' };
 
-  const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
-  if (!booking || booking.clientId !== user.id) return { success: false, error: 'Proposal not found.' };
+  const booking = await prisma.booking.findFirst({
+    where: { id: parsed.data, clientId: user.id },
+    select: { id: true, status: true, providerId: true, description: true },
+  });
+  if (!booking) return { success: false, error: 'Proposal not found.' };
   if (booking.status !== 'PROPOSAL_SENT') {
     return { success: false, error: 'This proposal can no longer be rejected.' };
   }
 
-  booking.status = 'DECLINED';
+  await prisma.booking.update({
+    where: { id: booking.id },
+    data: { status: 'DECLINED' },
+  });
 
   await createNotification({
     userId: booking.providerId,
@@ -256,20 +270,25 @@ export async function cancelBookingAction(bookingId: string): Promise<{ success:
   const user = await getCurrentUser();
   if (!user) return { success: false, error: 'Not authenticated.' };
 
-  const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
+  const booking = await prisma.booking.findFirst({
+    where: {
+      id: parsed.data,
+      OR: [{ clientId: user.id }, { providerId: user.id }],
+    },
+    select: { id: true, status: true, clientId: true, providerId: true, description: true, jobRequestId: true },
+  });
   if (!booking) return { success: false, error: 'Booking not found.' };
-  if (booking.clientId !== user.id && booking.providerId !== user.id) {
-    return { success: false, error: 'Not authorised to cancel this booking.' };
-  }
 
   if (!['PENDING', 'PROPOSAL_SENT', 'ACCEPTED'].includes(booking.status)) {
     return { success: false, error: `A ${booking.status.toLowerCase()} booking cannot be cancelled.` };
   }
 
-  booking.status = 'CANCELLED';
-  booking.cancelledAt = new Date().toISOString();
+  await prisma.booking.update({
+    where: { id: booking.id },
+    data: { status: 'CANCELLED', cancelledAt: new Date() },
+  });
+
   if (booking.jobRequestId) {
-    // Re-open the job request so other providers can still bid.
     const { reopenJobRequest } = await import('@/src/lib/data');
     await reopenJobRequest(booking.jobRequestId);
   }
@@ -288,7 +307,7 @@ export async function cancelBookingAction(bookingId: string): Promise<{ success:
 }
 
 // ---------------------------------------------------------------------------
-// Provider responds to a client-initiated booking request.
+// Either party marks a booking as complete.
 // ---------------------------------------------------------------------------
 
 export async function completeJobAction(bookingId: string): Promise<CompleteJobResult> {
@@ -298,12 +317,14 @@ export async function completeJobAction(bookingId: string): Promise<CompleteJobR
   const user = await getCurrentUser();
   if (!user) return { success: false, error: 'Not authenticated.' };
 
-  const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
+  const booking = await prisma.booking.findFirst({
+    where: {
+      id: parsed.data,
+      OR: [{ clientId: user.id }, { providerId: user.id }],
+    },
+    select: { id: true, status: true, clientId: true, providerId: true, description: true },
+  });
   if (!booking) return { success: false, error: 'Booking not found.' };
-
-  if (booking.clientId !== user.id && booking.providerId !== user.id) {
-    return { success: false, error: 'Not authorised to complete this booking.' };
-  }
 
   if (booking.status !== 'IN_PROGRESS' && booking.status !== 'ACCEPTED') {
     return {
@@ -312,14 +333,11 @@ export async function completeJobAction(bookingId: string): Promise<CompleteJobR
     };
   }
 
-  const updatedBooking = {
-    ...booking,
-    status: 'COMPLETED' as const,
-    completionDate: new Date().toISOString(),
-  };
-
-  booking.status = updatedBooking.status;
-  booking.completionDate = updatedBooking.completionDate;
+  const completionDate = new Date();
+  const updatedBooking = await prisma.booking.update({
+    where: { id: booking.id },
+    data: { status: 'COMPLETED', completionDate },
+  });
 
   const counterpartyId = booking.clientId === user.id ? booking.providerId : booking.clientId;
   await createNotification({
@@ -334,6 +352,10 @@ export async function completeJobAction(bookingId: string): Promise<CompleteJobR
   return { success: true, updatedBooking };
 }
 
+// ---------------------------------------------------------------------------
+// Provider responds to a client-initiated booking request.
+// ---------------------------------------------------------------------------
+
 export async function acceptBookingAction(bookingId: string): Promise<{ success: boolean; error?: string }> {
   const parsed = bookingIdSchema.safeParse(bookingId);
   if (!parsed.success) return { success: false, error: 'Invalid booking ID.' };
@@ -341,14 +363,20 @@ export async function acceptBookingAction(bookingId: string): Promise<{ success:
   const user = await getCurrentUser();
   if (!user || user.role !== 'PROVIDER') return { success: false, error: 'Not authorised.' };
 
-  const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
-  if (!booking || booking.providerId !== user.id) return { success: false, error: 'Booking not found.' };
+  const booking = await prisma.booking.findFirst({
+    where: { id: parsed.data, providerId: user.id },
+    select: { id: true, status: true, clientId: true, description: true },
+  });
+  if (!booking) return { success: false, error: 'Booking not found.' };
 
   if (booking.status !== 'PENDING') {
     return { success: false, error: 'Only pending bookings can be accepted.' };
   }
 
-  booking.status = 'ACCEPTED';
+  await prisma.booking.update({
+    where: { id: booking.id },
+    data: { status: 'ACCEPTED' },
+  });
 
   await createNotification({
     userId: booking.clientId,
@@ -369,14 +397,20 @@ export async function declineBookingAction(bookingId: string): Promise<{ success
   const user = await getCurrentUser();
   if (!user || user.role !== 'PROVIDER') return { success: false, error: 'Not authorised.' };
 
-  const booking = MOCK_BOOKINGS.find((b) => b.id === parsed.data);
-  if (!booking || booking.providerId !== user.id) return { success: false, error: 'Booking not found.' };
+  const booking = await prisma.booking.findFirst({
+    where: { id: parsed.data, providerId: user.id },
+    select: { id: true, status: true, clientId: true, description: true },
+  });
+  if (!booking) return { success: false, error: 'Booking not found.' };
 
   if (booking.status !== 'PENDING' && booking.status !== 'ACCEPTED') {
     return { success: false, error: 'This booking cannot be declined.' };
   }
 
-  booking.status = 'DECLINED';
+  await prisma.booking.update({
+    where: { id: booking.id },
+    data: { status: 'DECLINED' },
+  });
 
   await createNotification({
     userId: booking.clientId,
