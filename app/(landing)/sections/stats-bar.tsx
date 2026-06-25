@@ -2,7 +2,7 @@ const STATS = [
   { value: "1,200+", label: "Verified Providers", sub: "across Nigeria" },
   { value: "8",      label: "Cities Active",       sub: "and expanding" },
   { value: "4.9★",  label: "Average Rating",      sub: "from real customers" },
-  { value: "₦0",    label: "Upfront Risk",         sub: "escrow on every job" },
+  { value: "24/7",  label: "Support",              sub: "for bookings" },
 ];
 
 export default function StatsBar() {

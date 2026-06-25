@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { MapPin, ArrowRight, Zap, Wrench, Hammer, Paintbrush, Layers, Sofa, Star, BadgeCheck } from "lucide-react";
+import ProtectedNavButton from "../components/protected-nav-button";
 
 const CATEGORIES = [
   { label: "Electrical", icon: Zap, href: "/dashboard/discover?category=Electrical" },
@@ -37,23 +37,25 @@ export default function HeroSection() {
             {/* Subtext */}
             <p className="text-base md:text-lg text-slate-500 mb-8 leading-relaxed max-w-lg">
               Book verified electricians, plumbers, carpenters, and more.
-              Every job protected by escrow — you pay only when you&apos;re satisfied.
+              Compare profiles, message providers, and confirm job details before work begins.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-3 mb-10">
-              <Link
-                href="/dashboard/discover"
+              <ProtectedNavButton
+                destination="/dashboard/discover"
+                fallback="/login"
                 className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm transition-colors shadow-sm"
               >
                 Find a Provider <ArrowRight size={16} />
-              </Link>
-              <Link
-                href="/waitlist"
+              </ProtectedNavButton>
+              <ProtectedNavButton
+                destination="/dashboard"
+                fallback="/register"
                 className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-700 hover:border-orange-300 hover:text-orange-600 font-semibold text-sm transition-colors"
               >
                 Are you a provider? Join here
-              </Link>
+              </ProtectedNavButton>
             </div>
 
             {/* Category chips */}
@@ -63,14 +65,15 @@ export default function HeroSection() {
               </p>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((cat) => (
-                  <Link
+                  <ProtectedNavButton
                     key={cat.label}
-                    href={cat.href}
+                    destination={cat.href}
+                    fallback="/login"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 text-xs text-slate-600 hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
                   >
                     <cat.icon size={12} />
                     {cat.label}
-                  </Link>
+                  </ProtectedNavButton>
                 ))}
               </div>
             </div>
@@ -152,22 +155,23 @@ function ProviderCardVisual() {
         </div>
 
         {/* CTA */}
-        <Link
-          href="/dashboard/discover"
+        <ProtectedNavButton
+          destination="/dashboard/discover"
+          fallback="/login"
           className="block w-full text-center py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors"
         >
           Book Victor →
-        </Link>
+        </ProtectedNavButton>
       </div>
 
-      {/* Floating escrow badge */}
+      {/* Floating completion badge */}
       <div className="absolute -bottom-5 -left-5 bg-white border border-slate-100 shadow-lg rounded-xl px-3 py-2.5 flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
           ME
         </div>
         <div>
-          <p className="text-xs font-semibold text-slate-800">Job completed ✓</p>
-          <p className="text-[10px] text-slate-400">Escrow released · just now</p>
+          <p className="text-xs font-semibold text-slate-800">Job completed</p>
+          <p className="text-[10px] text-slate-400">Review posted just now</p>
         </div>
       </div>
     </div>

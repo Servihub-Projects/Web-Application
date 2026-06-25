@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Zap, Droplets, Hammer, Paintbrush, Layers, Sofa, LayoutGrid, Sparkles } from "lucide-react";
+import ProtectedNavButton from "../components/protected-nav-button";
 import SectionHeader, { SectionTag, Title, SubTitle } from "../components/section-header";
 
 const CATEGORIES = [
@@ -25,16 +25,17 @@ export default function Categories() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
           {CATEGORIES.map((cat) => (
-            <Link
+            <ProtectedNavButton
               key={cat.name}
-              href={cat.href}
-              className={`group flex flex-col items-center gap-3 p-5 rounded-2xl border border-transparent hover:border-orange-200 hover:shadow-sm hover:bg-white transition-all duration-200 ${cat.bg}`}
+              destination={cat.href}
+              fallback="/login"
+              className={`group flex flex-col items-center gap-3 p-5 rounded-2xl border border-transparent hover:border-orange-200 hover:shadow-sm hover:bg-white transition-all duration-200 w-full ${cat.bg}`}
             >
               <cat.icon size={26} />
               <span className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 text-center leading-tight">
                 {cat.name}
               </span>
-            </Link>
+            </ProtectedNavButton>
           ))}
         </div>
       </div>

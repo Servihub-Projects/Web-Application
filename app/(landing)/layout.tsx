@@ -1,64 +1,33 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "../globals.css";
-import NavigationBar from "./components/navbar";
-import { Footer } from "./components/footer";
-import { Toaster } from "sonner"
-
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import type { Metadata } from 'next';
+import NavigationBar from './components/navbar';
+import { Footer } from './components/footer';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  title: "ServiHub – Connect with Trusted Service Providers",
+  title: 'ServiHub – Connect with Trusted Service Providers',
   description:
-    "ServiHub is a platform that links service providers with people who need their services. Find reliable professionals or offer your skills today.",
-  keywords: ["ServiHub", "service marketplace", "hire professionals", "find work", "service providers", "freelance services", "local services"],
+    'ServiHub is a platform that links service providers with people who need their services. Find reliable professionals or offer your skills today.',
   openGraph: {
-    title: "ServiHub – Connect with Trusted Service Providers",
-    description: "Discover, hire, and offer services all in one place. ServiHub connects service providers with those who need them.",
-    url: "https://servihub.com", // update when you have your domain
-    siteName: "ServiHub",
-    images: [
-      {
-        url: "/og-image.png", // replace with your actual OG image
-        width: 1200,
-        height: 630,
-        alt: "ServiHub platform preview",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
+    title: 'ServiHub – Connect with Trusted Service Providers',
+    description:
+      'Discover, hire, and offer services all in one place. ServiHub connects service providers with those who need them.',
+    url: 'https://servihub.com',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'ServiHub platform preview' }],
   },
   twitter: {
-    card: "summary_large_image",
-    title: "ServiHub – Connect with Trusted Service Providers",
-    description: "ServiHub links service providers with clients. Find reliable services or showcase your skills.",
-    images: ["/og-image.png"], // replace with your actual image
-    creator: "@yourtwitterhandle", // optional
+    card: 'summary_large_image',
+    title: 'ServiHub – Connect with Trusted Service Providers',
+    images: ['/og-image.png'],
   },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function LandingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <NavigationBar />
-        {children}
-        <Footer />
-        <Toaster richColors={true} position="top-center" />
-      </body>
-    </html>
+    <div className="overflow-x-hidden">
+      <NavigationBar />
+      {children}
+      <Footer />
+      <Toaster richColors position="top-center" />
+    </div>
   );
 }

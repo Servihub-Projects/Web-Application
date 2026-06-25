@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   Accordion,
@@ -6,10 +7,10 @@ import {
   AccordionTrigger,
 } from "../components/ui/accordion";
 
-const FAQS = [
+const FAQS: { q: string; a: ReactNode }[] = [
   {
-    q: "How does escrow work on ServiHub?",
-    a: "When you book a service, your payment is held securely by ServiHub — not the provider. Funds are released to the provider only after you confirm the job is done to your satisfaction. If there's a dispute, our team reviews the evidence and resolves it.",
+    q: "How do bookings work on ServiHub?",
+    a: "Choose a verified provider, message them to agree the scope and timing, then track the booking from request to completion inside your dashboard.",
   },
   {
     q: "Are providers vetted before they join?",
@@ -21,11 +22,20 @@ const FAQS = [
   },
   {
     q: "What if a provider doesn't show up or does poor work?",
-    a: "Raise a dispute within 48 hours of the job completion date. Our support team will review the evidence — photos, messages, job description — and either arrange a re-do or issue a full refund from escrow.",
+    a: "Report the issue from your booking or message thread. Our support team reviews the job details, photos, and conversation history, then helps coordinate the next step.",
   },
   {
     q: "What cities is ServiHub active in?",
-    a: "We are currently active in Lagos, Abuja, Port Harcourt, Enugu, Kano, and Ibadan. We expand to new cities every quarter — join the waitlist to be notified when we launch in your city.",
+    a: (
+      <>
+        We are currently active in Lagos, Abuja, Port Harcourt, Enugu, Kano, and Ibadan. We expand to
+        new cities every quarter — add your details on the{" "}
+        <Link href="/waitlist" className="font-medium text-orange-600 underline-offset-2 hover:underline">
+          waitlist page
+        </Link>{" "}
+        to get notified when we launch in your city.
+      </>
+    ),
   },
 ];
 

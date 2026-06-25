@@ -33,6 +33,7 @@ export function Accordion({
   children,
   className,
 }: AccordionProps) {
+  void type;
   const [uncontrolledValue, setUncontrolledValue] = React.useState<string | null>(null);
   const isControlled = controlledValue !== undefined;
   const value = isControlled ? controlledValue ?? null : uncontrolledValue;
@@ -109,6 +110,7 @@ export function AccordionTrigger({
   asChild,
   ...props
 }: React.ComponentProps<"button"> & { asChild?: boolean }) {
+  void asChild;
   const { onValueChange, collapsible } = useAccordion();
   const { value, open, triggerId, contentId } = useAccordionItem();
 

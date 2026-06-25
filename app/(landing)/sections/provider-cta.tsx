@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { ArrowRight, Briefcase, DollarSign } from "lucide-react";
+import ProtectedNavButton from "../components/protected-nav-button";
 
 export default function ProviderCTA() {
   return (
@@ -19,15 +19,16 @@ export default function ProviderCTA() {
               Find the right professional, first time
             </h3>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              Browse verified providers, compare profiles, and book with escrow
-              protection. Your money doesn&apos;t move until you&apos;re satisfied.
+              Browse verified providers, compare profiles, and coordinate the
+              job details in one place before work begins.
             </p>
-            <Link
-              href="/dashboard/discover"
+            <ProtectedNavButton
+              destination="/dashboard/discover"
+              fallback="/login"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm transition-colors"
             >
               Find a Provider <ArrowRight size={15} />
-            </Link>
+            </ProtectedNavButton>
           </div>
 
           {/* ── Provider side ─────────────────── */}
@@ -42,16 +43,17 @@ export default function ProviderCTA() {
               Earn more with a platform that protects you
             </h3>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              Set your own rates. Get paid securely via escrow. Build your
-              reputation with verified reviews. No cold calling — clients come to
+              Set your own rates, manage bookings, and build your
+              reputation with verified reviews. No cold calling - clients come to
               you.
             </p>
-            <Link
-              href="/waitlist"
+            <ProtectedNavButton
+              destination="/dashboard"
+              fallback="/register"
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-green-500/60 text-green-400 hover:bg-green-500 hover:text-white hover:border-green-500 font-semibold text-sm transition-colors"
             >
               Join as Provider <ArrowRight size={15} />
-            </Link>
+            </ProtectedNavButton>
           </div>
 
         </div>

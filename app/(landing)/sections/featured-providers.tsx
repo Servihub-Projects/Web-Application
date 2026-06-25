@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Star, MapPin, ArrowRight, BadgeCheck } from "lucide-react";
+import ProtectedNavButton from "../components/protected-nav-button";
 import SectionHeader, { SectionTag, Title, SubTitle } from "../components/section-header";
 
 const PROVIDERS = [
@@ -104,23 +104,25 @@ export default function FeaturedProviders() {
               </div>
 
               {/* CTA */}
-              <Link
-                href="/dashboard/discover"
+              <ProtectedNavButton
+                destination="/dashboard/discover"
+                fallback="/login"
                 className="block w-full text-center py-2 rounded-xl border border-orange-200 text-orange-600 text-xs font-semibold hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-colors"
               >
                 View Profile
-              </Link>
+              </ProtectedNavButton>
             </div>
           ))}
         </div>
 
         <div className="text-center mt-8">
-          <Link
-            href="/dashboard/discover"
+          <ProtectedNavButton
+            destination="/dashboard/discover"
+            fallback="/login"
             className="inline-flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors"
           >
             Browse all providers <ArrowRight size={15} />
-          </Link>
+          </ProtectedNavButton>
         </div>
       </div>
     </section>
