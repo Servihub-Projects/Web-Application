@@ -12,7 +12,7 @@ import type { CurrencyCode } from '@/src/lib/types';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.email('Enter a valid email address.'),
+  email: z.email('Enter a valid email address.').lowercase(),
   password: z.string().min(8, 'Password must be at least 8 characters.'),
   role: z.enum(['CLIENT', 'PROVIDER']),
   preferredCurrency: z.enum(['NGN', 'USD']),
@@ -54,7 +54,7 @@ export default function RegisterForm() {
   const onSubmit = (data: FormValues) => {
     authRegister(
       data.name,
-      data.email,
+      data.email.toLowerCase(),
       data.password,
       data.role,
       data.preferredCurrency as CurrencyCode,

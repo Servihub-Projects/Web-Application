@@ -12,8 +12,8 @@ import {
   getServiceById,
   markJobRequestAssigned,
 } from '@/src/lib/data';
-import type { BookingActionResult, CompleteJobResult } from '@/src/lib/types';
-
+import type { Booking, BookingActionResult, CompleteJobResult } from '@/src/lib/types';
+import type { Booking as PrismaBooking } from "@/generated/prisma";
 const bookingIdSchema = z.string().min(1).max(100).regex(/^[\w-]+$/, 'Invalid booking ID.');
 
 const amountSchema = z
@@ -347,9 +347,21 @@ export async function completeJobAction(bookingId: string): Promise<CompleteJobR
     body: `"${booking.description}" was marked complete.`,
     actionUrl: user.role === 'CLIENT' ? '/dashboard/bookings' : '/dashboard/analytics',
   });
-
+  function serializeBooking(booking: PrismaBooking): Booking {
+    return {
+      ...booking,
+      totalAmount: booking.totalAmount.toNumber(),
+      platformFee: booking.platformFee.toNumber(),
+      startDate: booking.startDate.toISOString(),
+      createdAt: booking.createdAt.toISOString(),
+      completionDate: booking.completionDate?.toISOString(),
+      cancelledAt: booking.cancelledAt?.toISOString(),
+      proposalMessage: booking.proposalMessage ?? undefined,
+      jobRequestId: booking.jobRequestId ?? undefined,
+    };
+  }
   revalidateBookingSurfaces();
-  return { success: true, updatedBooking };
+  return { success: true, updatedBooking: serializeBooking(updatedBooking) };
 }
 
 // ---------------------------------------------------------------------------

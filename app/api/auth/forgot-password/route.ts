@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
-    const sent = await resend.emails.send({
+    await resend.emails.send({
       from: "Servihub <auth@servihub.net>",
       to: email,
       subject: "Reset your password",
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         </div>
       `,
     });
-    console.log(sent)
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Forgot password error:", error);

@@ -85,12 +85,10 @@ export function useLogout() {
   return { submit, isPending };
 }
 
-type data = {
-  email: string;
-};
+
 export function useResetPassword() {
   const [isPending, startTransition] = useTransition();
-  function sendResetPasswordEmail(data: data) {
+  function sendResetPasswordEmail(data: { email: string }) {
     startTransition(async () => {
       try {
         await fetch('/api/auth/forgot-password', {
