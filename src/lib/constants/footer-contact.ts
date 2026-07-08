@@ -1,15 +1,15 @@
 export const FOOTER_CONTACT = {
-  email: 'support@servihub.net',
-  
-  phoneTel: '+2348108651244',
+  email: 'contact@servihub.net',
 
-  phoneDisplay: '+234 810 8651 244',
+  phoneTel: '+2347075709265',
+
+  phoneDisplay: '+234 707 5709 265',
   addressLine: 'Choba, Obio-Akpor LGA, Port Harcourt, Rivers State, Nigeria.',
-  postalCode: '500102',  social: {
+  postalCode: '500102', social: {
     facebook: 'https://www.facebook.com/share/18ggq1mGNF/?mibextid=wwXIfr',
     instagram:
       'https://www.instagram.com/servihubusiness?igsh=ZDJ4bHp2NjRjZjRi&utm_source=qr',
-    
+
     twitter: '',
   },
 } as const;

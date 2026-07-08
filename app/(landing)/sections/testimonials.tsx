@@ -36,7 +36,7 @@ const TESTIMONIALS = [
 
 export default function Testimonials() {
   return (
-    <section id="testimonials" className="py-14 md:py-20 bg-white">
+    <section id="testimonials" className="hidden py-14 md:py-20 bg-white">
       <SectionHeader>
         <SectionTag color="orange" text="CUSTOMER REVIEWS" />
         <Title text="Real jobs. Real results." />

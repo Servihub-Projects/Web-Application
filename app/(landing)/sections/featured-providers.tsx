@@ -51,7 +51,7 @@ const PROVIDERS = [
 
 export default function FeaturedProviders() {
   return (
-    <section id="providers" className="py-14 md:py-20 bg-white">
+    <section id="providers" className="hidden py-14 md:py-20 bg-white">
       <SectionHeader>
         <SectionTag color="orange" text="TOP PROVIDERS" />
         <Title text="Meet some of our best" />

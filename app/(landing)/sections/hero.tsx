@@ -23,7 +23,7 @@ export default function HeroSection() {
             {/* Location badge */}
             <div className="inline-flex items-center gap-2 bg-orange-50 text-orange-600 border border-orange-200 rounded-full px-3 py-1.5 text-xs font-medium mb-6">
               <MapPin size={12} />
-              Now active in Lagos · Abuja · Port Harcourt
+              Now active in Port Harcourt
             </div>
 
             {/* H1 */}
@@ -54,7 +54,7 @@ export default function HeroSection() {
                 fallback="/register"
                 className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-700 hover:border-orange-300 hover:text-orange-600 font-semibold text-sm transition-colors"
               >
-                Are you a provider? Join here
+                Become a Provider <ArrowRight size={16} />
               </ProtectedNavButton>
             </div>
 

@@ -1,13 +1,13 @@
 const STATS = [
   { value: "1,200+", label: "Verified Providers", sub: "across Nigeria" },
-  { value: "8",      label: "Cities Active",       sub: "and expanding" },
-  { value: "4.9★",  label: "Average Rating",      sub: "from real customers" },
-  { value: "24/7",  label: "Support",              sub: "for bookings" },
+  { value: "8", label: "Cities Active", sub: "and expanding" },
+  { value: "4.9★", label: "Average Rating", sub: "from real customers" },
+  { value: "24/7", label: "Support", sub: "for bookings" },
 ];
 
 export default function StatsBar() {
   return (
-    <section className="bg-slate-900 py-10 md:py-12">
+    <section className="hidden bg-slate-900 py-10 md:py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
           {STATS.map((stat) => (

@@ -40,7 +40,7 @@ export function Footer() {
             </Link>
             <p className="text-slate-400 mb-6 max-w-xs text-sm leading-relaxed">
               Nigeria&apos;s trusted marketplace for skilled tradespeople. Find verified
-              electricians, plumbers, carpenters, and more across Lagos, Abuja, Port
+              electricians, plumbers, carpenters, in Port
               Harcourt, and beyond.
             </p>
             <div className="flex gap-3">

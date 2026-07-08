@@ -28,12 +28,8 @@ const FAQS: { q: string; a: ReactNode }[] = [
     q: "What cities is ServiHub active in?",
     a: (
       <>
-        We are currently active in Lagos, Abuja, Port Harcourt, Enugu, Kano, and Ibadan. We expand to
-        new cities every quarter — add your details on the{" "}
-        <Link href="/waitlist" className="font-medium text-orange-600 underline-offset-2 hover:underline">
-          waitlist page
-        </Link>{" "}
-        to get notified when we launch in your city.
+        We are currently active Port Harcourt. We expand to
+        new cities soon!!!
       </>
     ),
   },
@@ -96,7 +92,7 @@ export function FAQ() {
             Our support team is here to help you 24/7
           </p>
           <Link
-            href="mailto:support@servihub.com"
+            href="mailto:contact@servihub.com"
             className="inline-block px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-colors"
           >
             Contact Support
